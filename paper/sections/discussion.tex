@@ -1,0 +1,131 @@
+\section{Discussion}
+
+Our empirical results provide strong validation of the theoretical connection between neural networks and Mahalanobis distance, while also revealing nuanced behaviors that extend beyond the original framework. Here we explore the implications of these findings and their potential impact on neural network design and interpretation.
+
+\subsection{Support for Distance Metric Hypothesis}
+
+The experimental results offer compelling evidence for interpreting neural networks through the lens of statistical distance metrics:
+
+\subsubsection{Absolute Value Networks}
+The perfect intensity invariance and symmetric distance response of Abs networks align precisely with theoretical predictions:
+
+\begin{itemize}
+    \item \textbf{Scale Invariance:} The constant accuracy (95.32\%) across all intensity perturbations ($\alpha \in [0.0, 1.6]$) demonstrates that Abs networks learn pure distance metrics invariant to scaling.
+    
+    \item \textbf{Symmetric Degradation:} The nearly symmetric accuracy decay under positive and negative distance perturbations mirrors the behavior of Gaussian probability densities, supporting the interpretation of neurons as learning principal components of Gaussian distributions.
+    
+    \item \textbf{Prototype Learning:} The sharp accuracy peak at $\delta = 0$ suggests neurons successfully learn meaningful prototypes (means) of the underlying data distribution.
+\end{itemize}
+
+\subsubsection{ReLU Networks}
+The behavior of ReLU networks reveals a more complex relationship with distance metrics:
+
+\begin{itemize}
+    \item \textbf{Quasi-Invariance:} The minimal variation in accuracy (95.80\% to 95.83\%) under intensity scaling suggests ReLU networks approximate distance computations despite their one-sided nature.
+    
+    \item \textbf{Asymmetric Response:} The marked difference in response to positive versus negative distance perturbations indicates that ReLU networks implement a modified form of distance computation adapted to their activation constraints.
+    
+    \item \textbf{Robustness to Negative Shifts:} The high accuracy maintenance under negative $\delta$ values suggests ReLU networks develop compensatory mechanisms in their second layer weights.
+\end{itemize}
+
+\subsection{Theoretical Implications}
+
+Our findings extend the theoretical framework in several important ways:
+
+\subsubsection{Activation Function Role}
+The distinct behaviors of Abs and ReLU networks suggest activation functions play a dual role:
+
+\begin{equation}
+    g(Wx + b) = \begin{cases}
+        \text{Pure distance metric (Abs)} \\
+        \text{Hybrid metric with learned compensation (ReLU)}
+    \end{cases}
+\end{equation}
+
+This duality explains why ReLU networks can achieve comparable performance while maintaining better gradient properties during training.
+
+\subsubsection{Geometric Interpretation}
+The perturbation responses reveal the geometric properties of learned features:
+
+\begin{itemize}
+    \item Abs neurons implement symmetric decision boundaries centered on learned prototypes
+    \item ReLU neurons create asymmetric boundaries that preserve distance-like properties in their positive activation region
+    \item The network learns to compose these boundaries to form effective decision regions
+\end{itemize}
+
+\subsection{Practical Implications}
+
+Our results suggest several practical recommendations for neural network design:
+
+\subsubsection{Architecture Selection}
+\begin{itemize}
+    \item Use Abs activation when:
+        \begin{itemize}
+            \item Interpretability is crucial
+            \item Distance-based feature learning is desired
+            \item The task benefits from symmetric decision boundaries
+        \end{itemize}
+    \item Use ReLU activation when:
+        \begin{itemize}
+            \item Training dynamics are prioritized
+            \item Asymmetric feature detection is beneficial
+            \item The task requires robustness to negative shifts
+        \end{itemize}
+\end{itemize}
+
+\subsubsection{Model Initialization}
+The confirmation of distance metric learning suggests improved initialization strategies:
+
+\begin{itemize}
+    \item Initialize weights to approximate principal components of input data
+    \item Set biases to estimated cluster means
+    \item Scale initial weights by estimated cluster variances
+\end{itemize}
+
+\subsubsection{Feature Interpretation}
+Our findings enable more principled feature visualization:
+
+\begin{itemize}
+    \item For Abs networks: Interpret features as symmetric deviations from prototypes
+    \item For ReLU networks: Focus on positive activation regions while accounting for asymmetry
+    \item Use perturbation responses to identify learned prototype locations
+\end{itemize}
+
+\subsection{Limitations and Future Work}
+
+Several important questions remain for future investigation:
+
+\subsubsection{Architectural Scaling}
+\begin{itemize}
+    \item How do these findings extend to deeper networks?
+    \item Can distance metric interpretation improve skip connection design?
+    \item How do attention mechanisms interact with distance-based features?
+\end{itemize}
+
+\subsubsection{Training Dynamics}
+\begin{itemize}
+    \item What role does distance metric learning play in optimization?
+    \item Can perturbation analysis guide learning rate scheduling?
+    \item How do different optimizers affect distance metric acquisition?
+\end{itemize}
+
+\subsubsection{Alternative Activations}
+Further investigation is needed for:
+\begin{itemize}
+    \item Leaky ReLU and PReLU variations
+    \item Sigmoid and tanh activations
+    \item Modern alternatives like GELU and Swish
+\end{itemize}
+
+\subsection{Broader Impact}
+
+The validation of distance metric learning in neural networks has significant implications:
+
+\begin{itemize}
+    \item \textbf{Interpretability:} Provides a rigorous framework for understanding neural network decisions
+    \item \textbf{Architecture Design:} Suggests principles for developing more interpretable networks
+    \item \textbf{Theoretical Understanding:} Bridges neural networks with classical statistical methods
+    \item \textbf{Practical Applications:} Enables more principled feature engineering and model analysis
+\end{itemize}
+
+These insights could be particularly valuable in domains requiring interpretable AI, such as healthcare, finance, and autonomous systems, where understanding model behavior is crucial for deployment and validation. 
