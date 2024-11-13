@@ -14,7 +14,7 @@ from torchvision import datasets, transforms
 import models
 
 dir_exists_ok = False
-runs_per_model = 1
+runs_per_model = 20
 seed = 411713593
 
 # Check for GPU
