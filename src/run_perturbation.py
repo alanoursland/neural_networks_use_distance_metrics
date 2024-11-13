@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
 from pathlib import Path
+import numpy as np
 import sys
 
 # Check for GPU
@@ -53,21 +54,12 @@ def get_activation_range(model):
     min_vals = torch.min(all_activations, dim=1).values
     max_vals = torch.max(all_activations, dim=1).values
     
-    # Calculate values at 10% from min and max for each node
-    ranges = max_vals - min_vals
-    lower_bounds = min_vals + ranges * 0.1
-    upper_bounds = max_vals - ranges * 0.1
-    
-    return min_vals, max_vals, lower_bounds, upper_bounds
+    return min_vals, max_vals
 
-def create_intensity_perturbation(min_vals, max_vals, percent):
-    # For scaling, a is the multiplier (1 + percent)
-    # Negative percentages are truncated to zero by max(0, ...)
-    a = torch.ones_like(max_vals) * (1 + max(0, percent))
-    
-    # No offset needed for pure scaling
+def create_intensity_perturbation(min_vals, max_vals, scale):
+    # For scaling, scale is the direct multiplier
+    a = torch.ones_like(max_vals) * scale
     b = torch.zeros_like(max_vals)
-    
     return a, b
 
 def create_distance_perturbation(min_vals, max_vals, percent):
@@ -77,11 +69,6 @@ def create_distance_perturbation(min_vals, max_vals, percent):
     # Calculate the desired shift
     shift = ranges * percent
     
-    # To maintain the same maximum value after shifting:
-    # max_val = a * max_val + b
-    # max_val = a * max_val + shift
-    # Therefore: a = (max_val - shift) / max_val
-    
     # Calculate a to maintain max value
     a = (max_vals - shift) / max_vals
     
@@ -90,11 +77,8 @@ def create_distance_perturbation(min_vals, max_vals, percent):
     
     return a, b
 
-def test_intensity_perturbation(model, percent):
-    """
-    Test model performance with intensity perturbation (scaling)
-    Returns accuracy percentage on test set
-    """
+def test_intensity_perturbation(model, scale_percent):
+    """Test model performance with intensity perturbation (scaling)"""
     # Load the model and move to GPU
     model.eval()
     
@@ -109,10 +93,10 @@ def test_intensity_perturbation(model, percent):
     X_test = X_test.reshape(-1, 28*28)
     
     # Get activation ranges
-    min_vals, max_vals, _, _ = get_activation_range(model)
+    min_vals, max_vals = get_activation_range(model)
     
     # Create perturbation parameters
-    a, b = create_intensity_perturbation(min_vals, max_vals, percent)
+    a, b = create_intensity_perturbation(min_vals, max_vals, scale_percent)
     
     # Apply perturbation parameters
     model.perturb_layer.a.data = a
@@ -126,11 +110,8 @@ def test_intensity_perturbation(model, percent):
         
     return accuracy
 
-def test_distance_perturbation(model, percent):
-    """
-    Test model performance with distance perturbation (shifting)
-    Returns accuracy percentage on test set
-    """
+def test_distance_perturbation(model, offset_percent):
+    """Test model performance with distance perturbation (shifting)"""
     # Load the model and move to GPU
     model.eval()
     
@@ -145,10 +126,10 @@ def test_distance_perturbation(model, percent):
     X_test = X_test.reshape(-1, 28*28)
     
     # Get activation ranges
-    min_vals, max_vals, _, _ = get_activation_range(model)
+    min_vals, max_vals = get_activation_range(model)
     
     # Create perturbation parameters
-    a, b = create_distance_perturbation(min_vals, max_vals, percent)
+    a, b = create_distance_perturbation(min_vals, max_vals, offset_percent)
     
     # Apply perturbation parameters
     model.perturb_layer.a.data = a
@@ -163,45 +144,54 @@ def test_distance_perturbation(model, percent):
     return accuracy
 
 def main():
-    models = [
-        "results/models/PerturbationAbs/0/PerturbationAbs.pt",
-        "results/models/PerturbationReLU/0/PerturbationReLU.pt"
-    ]
+    models_dir = Path("results/models")
+    results_dir = Path("results/perturbation")
+    results_dir.mkdir(parents=True, exist_ok=True)
     
-    for model_path in models:
-        # Load the model
-        model = torch.load(model_path)
-        model.eval()
-
-        print(f"\nAnalyzing model: {Path(model_path).parent.parent.name}")
-        min_val, max_val, lower_bound, upper_bound = get_activation_range(model)
-        a_i, b_i = create_intensity_perturbation(min_val, max_val, 0.0)
-        a_d, b_d = create_distance_perturbation(min_val, max_val, 0.0)
-        # print(f"Min value: {min_val}")
-        # print(f"Max value: {max_val}")
-        # print(f"10% from min: {lower_bound}")
-        # print(f"10% from max: {upper_bound}")
-        # print(f"intensity_perturbation: {a_i}, {b_i}")
-        # print(f"distance_perturbation: {a_d}, {b_d}")
-
-        print(f"0.0 intensity {test_intensity_perturbation(model, 0.0)}")
-        print(f"0.1 intensity {test_intensity_perturbation(model, 0.1)}")
-        print(f"0.2 intensity {test_intensity_perturbation(model, 0.2)}")
-        print(f"0.4 intensity {test_intensity_perturbation(model, 0.3)}")
-        print(f"0.8 intensity {test_intensity_perturbation(model, 0.3)}")
-        print(f"1.6 intensity {test_intensity_perturbation(model, 0.5)}")
-        print()
-
-
-        print(f"-0.8 distance {test_distance_perturbation(model, -0.8)}")
-        print(f"-0.4 distance {test_distance_perturbation(model, -0.4)}")
-        print(f"-0.2 distance {test_distance_perturbation(model, -0.2)}")
-        print(f"-0.1 distance {test_distance_perturbation(model, -0.1)}")
-        print(f"0.0 distance {test_distance_perturbation(model, 0.0)}")
-        print(f"0.1 distance {test_distance_perturbation(model, 0.1)}")
-        print(f"0.2 distance {test_distance_perturbation(model, 0.2)}")
-        print(f"0.4 distance {test_distance_perturbation(model, 0.4)}")
-        print(f"0.8 distance {test_distance_perturbation(model, 0.8)}")
+    # Generate test points
+    # Scale: logarithmically spaced from 0.1 to 10.0
+    scale_values = np.logspace(np.log10(0.1), np.log10(10.0), 100)
+    
+    # Offset: -2.0 to 1.0 with more points near 0
+    left_tail = np.linspace(-2.0, -0.4, 30)
+    center = np.linspace(-0.4, 0.4, 40)
+    right_tail = np.linspace(0.4, 1.0, 30)
+    offset_values = np.sort(np.concatenate([left_tail, center, right_tail]))
+    
+    # Dictionary to store all results
+    all_results = {}
+    
+    # Test each model type and run
+    model_types = ["PerturbationAbs", "PerturbationReLU"]
+    for model_type in model_types:
+        print(f"\nProcessing {model_type}")
+        model_results = []
+        
+        # Test each run
+        for run in range(20):
+            print(f"Run {run}")
+            model_path = models_dir / model_type / str(run) / f"{model_type}.pt"
+            if not model_path.exists():
+                print(f"Model not found: {model_path}")
+                continue
+                
+            # Load model
+            model = torch.load(model_path)
+            model.eval()
+            
+            # Test perturbations
+            run_results = {
+                'scale_values': scale_values,
+                'scale_accuracies': [test_intensity_perturbation(model, scale) for scale in scale_values],
+                'offset_values': offset_values,
+                'offset_accuracies': [test_distance_perturbation(model, offset) for offset in offset_values]
+            }
+            model_results.append(run_results)
+        
+        all_results[model_type] = model_results
+    
+    # Save results
+    torch.save(all_results, results_dir / "perturbation_results.pt")
 
 if __name__ == "__main__":
     main()
