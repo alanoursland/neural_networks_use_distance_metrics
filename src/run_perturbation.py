@@ -21,6 +21,7 @@ train_dataset = datasets.MNIST('./data', train=True, download=True, transform=tr
 
 # Move entire dataset to GPU
 X_train = train_dataset.data.float().to(device)
+y_train = train_dataset.targets.to(device)
 X_train = X_train.reshape(-1, 28*28)
 
 def get_activation_range(model):
@@ -51,9 +52,11 @@ def get_activation_range(model):
     all_activations = all_activations.transpose(0, 1)
     
     # Calculate min and max values for each node
+    # print(f"get_activation_range {all_activations}")
     min_vals = torch.min(all_activations, dim=1).values
     max_vals = torch.max(all_activations, dim=1).values
     
+    model.eval()
     return min_vals, max_vals
 
 def create_intensity_perturbation(min_vals, max_vals, scale):
@@ -65,6 +68,10 @@ def create_intensity_perturbation(min_vals, max_vals, scale):
 def create_distance_perturbation(min_vals, max_vals, percent):
     # Calculate the range for each node
     ranges = max_vals - min_vals
+
+    # print(f"create_distance_perturbation min_vals {min_vals}")
+    # print(f"create_distance_perturbation max_vals {max_vals}")
+    # print(f"create_distance_perturbation ranges {ranges}")
     
     # Calculate the desired shift
     shift = ranges * percent
@@ -77,24 +84,11 @@ def create_distance_perturbation(min_vals, max_vals, percent):
     
     return a, b
 
-def test_intensity_perturbation(model, scale_percent):
+def test_intensity_perturbation(model, min_vals, max_vals, scale_percent):
     """Test model performance with intensity perturbation (scaling)"""
     # Load the model and move to GPU
     model.eval()
-    
-    # Load test dataset
-    train_dataset = datasets.MNIST('./data', train=False, 
-                                transform=transforms.Compose([
-                                    transforms.ToTensor(),
-                                    transforms.Normalize((0.1307,), (0.3081,))
-                                ]))
-    X_test = train_dataset.data.float().to(device)
-    y_test = train_dataset.targets.to(device)
-    X_test = X_test.reshape(-1, 28*28)
-    
-    # Get activation ranges
-    min_vals, max_vals = get_activation_range(model)
-    
+        
     # Create perturbation parameters
     a, b = create_intensity_perturbation(min_vals, max_vals, scale_percent)
     
@@ -104,30 +98,18 @@ def test_intensity_perturbation(model, scale_percent):
     
     # Evaluate model
     with torch.no_grad():
-        outputs = model(X_test)
+        outputs = model(X_train)
         predictions = torch.argmax(outputs, dim=1)
-        accuracy = (predictions == y_test).float().mean().item() * 100
+        accuracy = (predictions == y_train).float().mean().item() * 100
         
+    model.eval()
     return accuracy
 
-def test_distance_perturbation(model, offset_percent):
+def test_distance_perturbation(model, min_vals, max_vals, offset_percent):
     """Test model performance with distance perturbation (shifting)"""
     # Load the model and move to GPU
     model.eval()
-    
-    # Load test dataset
-    train_dataset = datasets.MNIST('./data', train=False, 
-                                transform=transforms.Compose([
-                                    transforms.ToTensor(),
-                                    transforms.Normalize((0.1307,), (0.3081,))
-                                ]))
-    X_test = train_dataset.data.float().to(device)
-    y_test = train_dataset.targets.to(device)
-    X_test = X_test.reshape(-1, 28*28)
-    
-    # Get activation ranges
-    min_vals, max_vals = get_activation_range(model)
-    
+        
     # Create perturbation parameters
     a, b = create_distance_perturbation(min_vals, max_vals, offset_percent)
     
@@ -137,10 +119,12 @@ def test_distance_perturbation(model, offset_percent):
     
     # Evaluate model
     with torch.no_grad():
-        outputs = model(X_test)
+        outputs = model(X_train)
         predictions = torch.argmax(outputs, dim=1)
-        accuracy = (predictions == y_test).float().mean().item() * 100
-        
+        accuracy = (predictions == y_train).float().mean().item() * 100
+    
+    # print(f"distance {offset_percent} {accuracy} {a} {b}")
+    model.eval()
     return accuracy
 
 def main():
@@ -150,14 +134,15 @@ def main():
     
     # Generate test points
     # Scale: logarithmically spaced from 0.1 to 10.0
-    scale_values = np.logspace(np.log10(0.1), np.log10(10.0), 100)
+    scale_values = np.logspace(np.log10(0.01), np.log10(10.0), 100)
     
     # Offset: -2.0 to 1.0 with more points near 0
-    left_tail = np.linspace(-2.0, -0.4, 30)
-    center = np.linspace(-0.4, 0.4, 40)
-    right_tail = np.linspace(0.4, 1.0, 30)
+    left_tail = np.linspace(-2.0, -0.4, 32, endpoint=False)
+    center = np.linspace(-0.4, 0.4, 80, endpoint=False)
+    right_tail = np.linspace(0.4, 1.0, 13, endpoint=True)
     offset_values = np.sort(np.concatenate([left_tail, center, right_tail]))
-    
+    # print(offset_values)
+
     # Dictionary to store all results
     all_results = {}
     
@@ -169,7 +154,7 @@ def main():
         
         # Test each run
         for run in range(20):
-            print(f"Run {run}")
+            print(f"Run {model_type} {run}")
             model_path = models_dir / model_type / str(run) / f"{model_type}.pt"
             if not model_path.exists():
                 print(f"Model not found: {model_path}")
@@ -177,16 +162,24 @@ def main():
                 
             # Load model
             model = torch.load(model_path)
-            model.eval()
-            
+            offsets = [offset for offset in offset_values]
+            # print(f"{offsets}")
+            # print(f"Distance  {offsets[0]} {test_distance_perturbation(model,  offsets[0])}")
+            # print(f"Distance -2.0 {test_distance_perturbation(model, -2.00)}")
+            # print(f"Distance  0.0 {test_distance_perturbation(model,  0.00)}")
+
             # Test perturbations
+            # Get activation ranges
+            min_vals, max_vals = get_activation_range(model)
+    
             run_results = {
                 'scale_values': scale_values,
-                'scale_accuracies': [test_intensity_perturbation(model, scale) for scale in scale_values],
+                'scale_accuracies': [test_intensity_perturbation(model, min_vals, max_vals, scale) for scale in scale_values],
                 'offset_values': offset_values,
-                'offset_accuracies': [test_distance_perturbation(model, offset) for offset in offset_values]
+                'offset_accuracies': [test_distance_perturbation(model, min_vals, max_vals, offset) for offset in offset_values]
             }
             model_results.append(run_results)
+            # print(f"{run_results['offset_accuracies']}")
         
         all_results[model_type] = model_results
     
