@@ -1,0 +1,29 @@
+\section{Background}
+
+Neural networks have predominantly been interpreted as generating statistical intensity metrics since McCulloch and Pitts published ``A Logical Calculus of the Ideas Immanent in Nervous Activity'' in 1943. Under this interpretation, larger activation values indicate stronger feature presence or higher confidence in feature detection. While neural networks have achieved remarkable success with this interpretation, connecting individual node activations to concrete statistical properties of data has remained challenging.
+
+\subsection{Theoretical Foundation}
+
+In our paper ``Interpreting Neural Networks through Mahalanobis Distance'' \citep{oursland2024interpreting}, we demonstrated a mathematical connection between linear nodes with absolute value activation functions and statistical distance metrics. While this theoretical work suggests neural networks might naturally learn to measure distances rather than intensities, empirical validation is required to determine whether networks actually employ distance-based computations.
+
+A distance metric measures how far an input is from a learned statistical property of data. An intensity metric measures the presence or magnitude of a statistical property. A node's output can be viewed through either lens - as indicating distance from a prototype or as signaling feature presence. For example, a disjunctive distance filter accepts inputs that are close to any member of a set of prototypes, while a conjunctive intensity filter requires multiple features to be strongly present.
+
+We explore these ideas using the MNIST dataset, a classical digit recognition problem that provides a well-understood setting for studying network behavior. MNIST's clear feature structure and extensive prior research make it ideal for investigating fundamental properties of neural network learning.
+
+Consider a neural network node trained on MNIST. Traditional interpretation suggests an output node might detect the ``presence of 0'' with higher activation values indicating stronger confidence. However, the node could be actually measuring ``distance from class embeddings that are not-0''--- how different an input is from all other digits. While both interpretations can lead to successful classification, the distance-based interpretation aligns with a known linear statistical distance metric. There may be linear statistical intensity metrics, but the authors have been unable to find one.
+
+\subsection{From Theory to Practice}
+
+The distinction between distance and intensity metrics becomes crucial when analyzing network behavior. Our investigation examines whether neural networks learn distance metrics or intensity metrics when processing data distributions. For example, in the MNIST context, we can define a disjunctive distance feature that accepts digits 1-9 and rejects 0. From an intensity perspective, high activation would indicate strong confidence in seeing a 0, but this may not correspond to any stable statistical property of the data.
+
+This reframing suggests that neural networks might fundamentally operate as distance-measuring devices rather than feature detectors. However, proving this requires more than mathematical relationships. We need empirical evidence that networks actually learn and use distance metrics in practice. This leads to several key questions:
+
+\begin{itemize}
+    \item Do neural networks naturally learn to measure distances rather than intensities?
+    \item How can we experimentally distinguish between distance-based and intensity-based feature learning?
+    \item What evidence would convincingly demonstrate which interpretation better reflects network operation?
+\end{itemize}
+
+These questions motivate our experimental design, which uses controlled perturbations to probe the nature of learned features. By separately manipulating distance and intensity properties of network activations, we can determine which properties actually drive network behavior.
+
+Our investigation focuses not on proving exact mathematical relationships but on demonstrating that distance properties, rather than intensity properties, govern network performance. This approach provides a path toward better understanding how neural networks process information and potentially improving network design and analysis methods.
