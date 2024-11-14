@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+import seaborn
 
 def debug_raw_data(results):
     """Print raw data for first few runs of each model"""
@@ -60,55 +61,89 @@ def load_and_process_results(filepath):
     # print(stats_dict)
     return stats_dict
 
-def plot_results(stats_dict):
+def plot_results(stats_dict, publication_ready=False):
     """Create plots with confidence intervals"""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    if publication_ready:
+        # Publication style settings
+        # plt.style.use('seaborn-paper')
+        seaborn.set_theme()
+        plt.rcParams.update({
+            'font.size': 12,
+            'axes.labelsize': 14,
+            'axes.titlesize': 14,
+            'xtick.labelsize': 12,
+            'ytick.labelsize': 12,
+            'legend.fontsize': 12,
+            'figure.dpi': 300,
+            'figure.figsize': (10, 4.5),  # Adjusted for better aspect ratio
+            'axes.grid': True,
+            'grid.alpha': 0.3,
+            'lines.linewidth': 2
+        })
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2)
     
     # Plot scaling results
-    ax1.set_title('Intensity (Scale) Perturbation')
-    ax1.set_xlabel('Scale Factor (Log10)')
+    ax1.set_title('(a) Intensity Perturbation')
+    ax1.set_xlabel('Scale Factor')
     ax1.set_ylabel('Accuracy (%)')
     ax1.set_xscale('log')
+    ax1.set_ylim(0, 102)
     
-    for model_name, color in [('PerturbationAbs', 'blue'), ('PerturbationReLU', 'red')]:
+    for model_name, color, style in [
+        ('PerturbationAbs', '#1f77b4', '-'), 
+        ('PerturbationReLU', '#d62728', '--')
+    ]:
         stats = stats_dict[model_name]['scale']
         
         # Plot mean line
-        ax1.plot(stats['x'], stats['mean'], color=color, label=model_name)
+        ax1.plot(stats['x'], stats['mean'], 
+                color=color, 
+                linestyle=style,
+                label='Abs' if 'Abs' in model_name else 'ReLU')
         
         # Plot confidence interval
         ax1.fill_between(stats['x'], 
                         stats['ci'][0], 
                         stats['ci'][1],
-                        color=color, alpha=0.2)
+                        color=color, 
+                        alpha=0.15)
     
-    ax1.legend()
-    ax1.grid(True)
+    ax1.legend(loc='lower left')
     
     # Plot offset results
-    ax2.set_title('Distance (Offset) Perturbation')
+    ax2.set_title('(b) Distance Perturbation')
     ax2.set_xlabel('Offset')
     ax2.set_ylabel('Accuracy (%)')
-    
-    for model_name, color in [('PerturbationAbs', 'blue'), ('PerturbationReLU', 'red')]:
+    ax2.set_ylim(0, 102)
+
+    for model_name, color, style in [
+        ('PerturbationAbs', '#1f77b4', '-'), 
+        ('PerturbationReLU', '#d62728', '--')
+    ]:
         stats = stats_dict[model_name]['offset']
         
         # Plot mean line
-        ax2.plot(stats['x'], stats['mean'], color=color, label=model_name)
+        ax2.plot(stats['x'], stats['mean'], 
+                color=color, 
+                linestyle=style,
+                label='Abs' if 'Abs' in model_name else 'ReLU')
         
         # Plot confidence interval
         ax2.fill_between(stats['x'], 
                         stats['ci'][0], 
                         stats['ci'][1],
-                        color=color, alpha=0.2)
+                        color=color, 
+                        alpha=0.15)
     
-    ax2.legend()
-    ax2.grid(True)
+    ax2.legend(loc='upper left')
     
     plt.tight_layout()
-    plt.savefig('results/perturbation_analysis.png')
+    plt.savefig('results/perturbation_analysis.png', 
+                bbox_inches='tight',
+                pad_inches=0.1)
     plt.close()
-
+    
 def perform_ttests(filepath):
     """Test whether each model's behavior aligns with intensity or distance features"""
     results = torch.load(filepath)
@@ -156,7 +191,7 @@ def main():
     stats_dict = load_and_process_results(filepath)
     
     # Create visualizations
-    plot_results(stats_dict)
+    plot_results(stats_dict, True)
     
     # Perform statistical tests
     perform_ttests(filepath)

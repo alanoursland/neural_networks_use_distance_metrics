@@ -1,142 +1,85 @@
 \section{Experimental Design}
 
-To validate the theoretical connection between neural networks and Mahalanobis distance, we designed a series of controlled experiments examining how networks respond to systematic perturbations. Our experimental framework enables direct comparison between traditional intensity-based interpretations and the proposed distance-based interpretation of neural network features.
+To empirically investigate whether neural networks naturally learn distance-based features, we designed systematic perturbation experiments that differentiate between distance-based and intensity-based feature learning. Our experimental framework enables direct comparison between these two interpretations by examining how learned features respond to specific modifications of their activation patterns.
 
 \subsection{Model Architecture}
-We implemented a minimal architecture that captures the essential components of the theoretical framework while eliminating confounding factors. The base architecture consists of:
-
-\begin{equation}
-    f(x) = W_2(g(W_1x + b_1)) + b_2
-\end{equation}
-
-** todo: I don't like this model representation. It feels unnecessarily opaque **
-
-where $g(\cdot)$ is either the absolute value function (Abs) or rectified linear unit (ReLU). This architecture includes:
-
-\begin{itemize}
-    \item Input layer: Flattened MNIST images ($784$ dimensions)
-    \item Hidden layer: $128$ neurons with perturbation capability
-    \item Output layer: $10$ neurons (one per digit)
-\end{itemize}
-
-The perturbation layer introduces two learnable parameters per neuron:
-\begin{equation}
-    h(x) = ax + b
-\end{equation}
-
-** todo: h(x) should be included in the model definition above **
-
-where $a$ represents scaling (intensity) and $b$ represents shifting (distance). During training, these parameters are initialized to $a=1$ and $b=0$, allowing the network to learn any necessary perturbations.
-
-** todo: This is wrong. The parameters in the perturbation network should not be learned. They are static and initialized to have zero effect on the model. They exist only to allow perturbations after training. ** 
-
-\subsection{Dataset and Training}
-We utilized the MNIST dataset for our experiments, chosen for its well-understood properties and minimal preprocessing requirements. The dataset consists of:
-\begin{itemize}
-    \item Training set: 60,000 examples
-    \item Test set: 10,000 examples
-    \item Input dimensions: $28 \times 28$ grayscale images
-    \item Output: 10 classes (digits 0-9)
-\end{itemize}
-
-Data preprocessing followed standard practices:
-\begin{equation}
-    x_{normalized} = \frac{x - \mu}{\sigma}
-\end{equation}
-where $\mu = 0.1307$ and $\sigma = 0.3081$ are the empirical mean and standard deviation of the MNIST dataset.
-
-Training configuration:
-\begin{itemize}
-    \item Optimizer: SGD with learning rate $0.001$
-    \item Loss function: Cross-entropy loss
-    \item Epochs: $5,000$
-    \item Batch size: Full dataset (to eliminate batch normalization effects)
-    \item Random seed: $411713593$ for reproducibility
-\end{itemize}
-
-** todo: talk about how we aren't doing minibatch learning. We are using the entire training set as a single batch. We run so many epochs because we only have one parameter update per epoch ** 
-
-\subsection{Perturbation Analysis}
-
-We developed two types of perturbation experiments to probe the network's learned representations:
-
-\subsubsection{Intensity Perturbation}
-This experiment tests the hypothesis that distance-based features should be invariant to scaling. We modify the perturbation layer parameters:
-\begin{equation}
-    a_{perturbed} = (1 + \alpha)a_{original}
-\end{equation}
-where $\alpha \in \{0.0, 0.1, 0.2, 0.4, 0.8, 1.6\}$ represents increasing levels of intensity scaling.
-
-\subsubsection{Distance Perturbation}
-This experiment examines sensitivity to shifts in decision boundaries:
-\begin{equation}
-    b_{perturbed} = b_{original} + \delta
-\end{equation}
-where $\delta \in \{-0.8, -0.4, -0.2, -0.1, 0.0, 0.1, 0.2, 0.4, 0.8\}$ represents symmetric shifts around the learned boundary.
-
-It's a little more complicated than that. We scale and translate to keep the max activation value the same.
-
-The experimental procedure for each perturbation type:
+We implemented a simple feedforward neural network architecture to test our hypotheses. The network processes MNIST digits through the following layers:
 \begin{enumerate}
-    \item Train network to convergence
-    \item Apply perturbation to all hidden layer neurons
-    \item Evaluate accuracy on test set
-    \item Repeat for each perturbation magnitude
+    \item Input layer (784 units, flattened $28 \times 28$ images)
+    \item Linear layer (128 units)
+    \item Perturbation layer
+    \item Activation function
+    \item Output layer (10 units)
 \end{enumerate}
 
-\subsection{Evaluation Metrics}
+The perturbation layer is a custom module that allows precise control over the activation patterns through two fixed parameters: a multiplicative factor $s$ and a translational offset $t$. During training, these parameters are held constant ($s=1$, $t=0$) so the layer has no effect on the network's learning. After training, we can modify these parameters to probe the network's learned features. For any input $x$, the perturbation layer computes:
 
-Our primary evaluation metric is classification accuracy on the test set:
 \begin{equation}
-    \text{Accuracy} = \frac{1}{N}\sum_{i=1}^N \mathbb{1}[\arg\max(f(x_i)) = y_i]
+    \text{output} = sx + t
 \end{equation}
 
-We analyze the perturbation response patterns through:
+where $s$ and $t$ can be set independently for each unit in the layer to create controlled modifications of the activation patterns.
+
+\subsection{Training Protocol}
+We trained on MNIST using standard classification procedures. For convenience and speed, we use the entire training set for each parameter update instead of minibatch training. This necessitates a larger number of epochs (5000) since we only update parameters once per epoch. Other training parameters include:
 \begin{itemize}
-    \item Accuracy vs. perturbation magnitude curves
-    \item Symmetry analysis of responses
-    \item Comparison between Abs and ReLU activations
-    \item Statistical significance tests for observed differences
+    \item Optimizer: SGD with learning rate 0.001
+    \item Loss function: Cross-entropy loss
+    \item Data normalization: $\mu = 0.1307$, $\sigma = 0.3081$
 \end{itemize}
 
-** todo: I don't care about symmetry. I don't care about relative performance between abs and relu. I'm testing them both because the original paper discusses both ** 
+To ensure robust results, we repeated each experiment 20 times with different random initializations.
 
-** todo: I need to do statistical significance. Remind me. I get your help setting that up correctly. ** 
+\subsection{Perturbation Design}
+The core of our experimental design lies in two carefully crafted perturbation types that differentially affect distance-based and intensity-based features.
 
-\subsection{Implementation Details}
+\subsubsection{Distance Perturbation}
+The distance perturbation is designed to affect small activation values while preserving large ones. For each node, we:
+\begin{enumerate}
+    \item Calculate its natural activation range: $r = \text{max}{\text{activation}} - \text{min}{\text{activation}}$
+    \item Scale the activation by $(1-p)$ to maintain the maximum value
+    \item Apply a relative shift $p \cdot r$ (as a percentage of the range)
+\end{enumerate}
 
-The experiments were implemented using PyTorch and executed on CUDA-enabled GPUs. Key implementation features include:
-\begin{itemize}
-    \item Custom perturbation layer with learnable parameters
-    \item Full GPU memory management to handle large batch sizes
-    \item Checkpoint saving at accuracy thresholds: $\{10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100\}$\%
-    \item Multiple random initializations to ensure robustness
-\end{itemize}
+For a given percentage $p$ and range $r$, the perturbation parameters are:
+\begin{align}
+a &= 1 - p \label{eq:scale} \
+b &= pr \label{eq:offset}
+\end{align}
 
-** todo: The thresholds aren't important for this paper **
+This perturbation specifically targets distance-like features by shifting their "zero point" (the location of best matches) while maintaining the overall dynamic range. If the model is using distance metric features, small shifts near zero should significantly impact accuracy, as this moves the decision boundary away from true matches.
 
-Code for reproducing all experiments is available in our public repository\footnote{Repository link will be provided upon publication}.
+\subsubsection{Intensity Perturbation}
+The intensity perturbation is a pure scaling operation that affects large activation values while preserving near-zero values. For a scale factor $s$:
+\begin{align}
+    a &= s \\
+    b &= 0
+\end{align}
 
-** todo: github repository is at https://github.com/alanoursland/neural_networks_use_distance_metrics **
+This perturbation tests for intensity-based feature learning, where larger activations indicate stronger feature presence. If the model is using intensity metric features, performance should decrease as the activation values changes. In either case, we expect performance to drop when activations are scaled small enough to intersect with the distance metric space.
 
-\subsection{Expected Outcomes}
+\subsubsection{Perturbation Ranges}
+We applied perturbations across carefully selected ranges to capture the full spectrum of behavior, with bounds selected to induce failure conditions:
 
-Under the Mahalanobis distance interpretation, we expect:
-\begin{itemize}
-    \item Abs networks to show:
-        \begin{itemize}
-            \item Invariance to intensity perturbations
-            \item Symmetric degradation with distance perturbations
-            \item Performance curves resembling Gaussian probability densities
-        \end{itemize}
-    \item ReLU networks to show:
-        \begin{itemize}
-            \item Asymmetric responses to perturbations
-            \item Different behavior for positive vs. negative shifts
-            \item Potential compensation through subsequent layer adaptation
-        \end{itemize}
-\end{itemize}
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\hline
+\textbf{Perturbation Type} & \textbf{Range} \\
+\hline
+Distance & $[-2.0, 1.0]$ relative to activation range \\
+Intensity & $[0.01, 10.0]$ logarithmic scale \\
+\hline
+\end{tabular}
+\end{table}
 
-** todo: For this paper, we only care about the response to perturbation. We don't care about symmetry or Gaussian curves or compensation by later layers. **
 
-These predictions provide clear criteria for validating the theoretical framework through empirical observation.
+\subsection{Evaluation}
+For each perturbation configuration, we:
+\begin{enumerate}
+    \item Apply the perturbation to all nodes in the perturbation layer
+    \item Measure the model's accuracy on the training set
+    \item Record the accuracy change from baseline
+\end{enumerate}
+
+We evaluate on the training set to directly observe how perturbations affect the features the network learned during training. Changes in accuracy indicate the model is using the perturbed feature type, while maintained accuracy suggests those features are not critical to the model's decisions.

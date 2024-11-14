@@ -1,153 +1,63 @@
 \section{Results}
 
-Our experiments reveal distinct patterns in how networks with different activation functions respond to perturbations, providing strong empirical support for the theoretical connection between neural networks and statistical distance metrics.
+Results of the experiment support our theory that the tested models use distance features.
 
 \subsection{Baseline Performance}
 
-Both architectures achieved strong performance on the MNIST classification task:
 
-\begin{itemize}
-    \item Abs network: 95.32\% test accuracy
-    \item ReLU network: 95.80\% test accuracy
-\end{itemize}
-
-The similar baseline performance suggests that both architectures successfully learned discriminative features for digit classification, providing a reliable foundation for perturbation analysis.
-
-\subsection{Intensity Perturbation Analysis}
-
-The response to intensity perturbations ($y = (1 + \alpha)|Wx + b|$) reveals a fundamental difference between Abs and ReLU networks. Figure \ref{fig:intensity} shows the test accuracy as a function of intensity scaling factor $\alpha$.
-
-\begin{figure}[h]
-\centering
-% Placeholder for actual intensity perturbation plot
-\caption{Test accuracy under intensity perturbation. The Abs network maintains constant accuracy across all scaling factors, while the ReLU network shows slight variation.}
-\label{fig:intensity}
-\end{figure}
-
-Key observations:
-
-\begin{enumerate}
-    \item \textbf{Abs Network Stability:} 
-    \begin{itemize}
-        \item Maintained constant 95.32\% accuracy across all scaling factors
-        \item $\alpha \in \{0.0, 0.1, 0.2, 0.4, 0.8, 1.6\}$ produced identical results
-        \item Demonstrates perfect invariance to intensity scaling
-    \end{itemize}
-    
-    \item \textbf{ReLU Network Response:}
-    \begin{itemize}
-        \item Slight accuracy increase from 95.80\% to 95.83\% with scaling
-        \item Minimal variation across different $\alpha$ values
-        \item Nearly scale-invariant but not perfectly so
-    \end{itemize}
-\end{enumerate}
-
-The Abs network's perfect intensity invariance strongly supports its interpretation as a distance metric, as distances should be invariant to scaling of the metric itself.
-
-\subsection{Distance Perturbation Analysis}
-
-The response to distance perturbations ($y = |Wx + b + \delta|$) reveals more dramatic differences between the architectures. Figure \ref{fig:distance} shows the test accuracy as a function of the shift parameter $\delta$.
-
-\begin{figure}[h]
-\centering
-% Placeholder for actual distance perturbation plot
-\caption{Test accuracy under distance perturbation. Note the symmetric response of the Abs network and asymmetric response of the ReLU network.}
-\label{fig:distance}
-\end{figure}
-
-\subsubsection{Abs Network Response}
-
-The Abs network showed a symmetric response pattern centered at $\delta = 0$:
+Both models achieved strong classification performance on MNIST before perturbation testing, as shown in Table~\ref{tab:baseline}.
 
 \begin{table}[h]
 \centering
-\begin{tabular}{|r|l||r|l|}
+\begin{tabular}{lrrr}
 \hline
-$\delta$ & Accuracy (\%) & $\delta$ & Accuracy (\%) \\
+Model & Training Acc (\%) & Test Acc (\%) & Loss \\
 \hline
--0.8 & 6.07 & 0.8 & 10.41 \\
--0.4 & 6.13 & 0.4 & 18.29 \\
--0.2 & 13.25 & 0.2 & 47.80 \\
--0.1 & 68.10 & 0.1 & 82.45 \\
-0.0 & 95.32 & & \\
+PerturbationAbs & 99.99 $\pm$ 0.00 & 95.29 $\pm$ 0.20 & 0.0047 $\pm$ 0.0005 \\
+PerturbationReLU & 98.33 $\pm$ 0.15 & 95.61 $\pm$ 0.14 & 0.0610 $\pm$ 0.0044 \\
 \hline
 \end{tabular}
-\caption{Abs network accuracy under distance perturbation}
-\label{tab:abs_distance}
+\caption{Baseline model performance averaged across 20 training runs (mean $\pm$ standard deviation).}
+\label{tab:baseline}
 \end{table}
 
-Key characteristics:
-\begin{itemize}
-    \item Approximately symmetric degradation around $\delta = 0$
-    \item Sharp accuracy drop with increasing $|\delta|$
-    \item Response curve resembles a Gaussian probability density
-\end{itemize}
+\subsection{Perturbation Analysis}
 
-\subsubsection{ReLU Network Response}
+Both models demonstrate strong invariance to intensity scaling while showing significant sensitivity to distance perturbations, supporting our theoretical framework. Figure~\ref{fig:perturbation_analysis} shows these effects across both perturbation types.
 
-The ReLU network exhibited distinctly asymmetric behavior:
+The PerturbationAbs model maintains consistent performance across a wide range of intensity scales while showing dramatic accuracy degradation under distance perturbations, dropping to 11.80\% accuracy at 0.4 offset. The PerturbationReLU model exhibits similar patterns, though with more moderate effects, maintaining 50.99\% accuracy at the same offset.
 
-\begin{table}[h]
-\centering
-\begin{tabular}{|r|l||r|l|}
-\hline
-$\delta$ & Accuracy (\%) & $\delta$ & Accuracy (\%) \\
-\hline
--0.8 & 15.51 & 0.8 & 23.05 \\
--0.4 & 91.44 & 0.4 & 53.41 \\
--0.2 & 89.90 & 0.2 & 90.52 \\
--0.1 & 94.64 & 0.1 & 95.17 \\
-0.0 & 95.80 & & \\
-\hline
-\end{tabular}
-\caption{ReLU network accuracy under distance perturbation}
-\label{tab:relu_distance}
-\end{table}
-
-Key characteristics:
-\begin{itemize}
-    \item Asymmetric response to positive versus negative shifts
-    \item More robust to negative shifts
-    \item Steeper degradation for positive shifts
-    \item Non-Gaussian response profile
-\end{itemize}
-
-\subsection{Interpretation of Results}
-
-The empirical results provide strong support for the theoretical framework:
-
-\begin{enumerate}
-    \item \textbf{Distance Metric Properties:}
-        \begin{itemize}
-            \item The Abs network's perfect intensity invariance aligns with fundamental properties of distance metrics
-            \item Symmetric response to boundary shifts matches expected behavior of statistical distances
-            \item Gaussian-like degradation pattern suggests underlying statistical distance computation
-        \end{itemize}
-    
-    \item \textbf{Activation Function Characteristics:}
-        \begin{itemize}
-            \item Abs activation maintains pure distance-like behavior
-            \item ReLU exhibits hybrid characteristics between distance and intensity metrics
-            \item Asymmetry in ReLU responses reflects its one-sided nature
-        \end{itemize}
-    
-    \item \textbf{Theoretical Predictions:}
-        \begin{itemize}
-            \item Observed patterns closely match predictions from Mahalanobis distance framework
-            \item Results support interpretation of neurons as learning statistical distances
-            \item Different activation functions lead to systematically different geometric behaviors
-        \end{itemize}
-\end{enumerate}
-
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{images/perturbation_analysis}
+    \caption{Effects of intensity scaling and distance offset perturbations on model accuracy. Shaded regions represent 95\% confidence intervals across 20 runs.}
+    \label{fig:perturbation_analysis}
+    \end{figure}
 \subsection{Statistical Analysis}
 
-To quantify the symmetry of responses, we computed correlation coefficients between positive and negative perturbations of equal magnitude:
+Table~\ref{tab:ttest} shows the statistical significance of these effects through paired t-tests comparing perturbed performance against baseline accuracy. Both models show highly significant responses to distance perturbations ($p < 10^{-16}$), while only the PerturbationReLU model shows modest sensitivity to intensity scaling ($p < 0.005$).
 
-\begin{itemize}
-    \item Abs network: $r = 0.97$ ($p < 0.001$)
-    \item ReLU network: $r = 0.43$ ($p = 0.124$)
-\end{itemize}
+\begin{table}[h]
+\centering
+\begin{tabular}{llrrr}
+\hline
+Model & Test & T-statistic & P-value & Mean Acc (\%) \\
+\hline
+\multirow{4}{*}{PerturbationAbs} 
+ & Scale 0.5 & -2.031 & 5.645e-02 & 99.99 \\
+ & Scale 2.0 & -2.015 & 5.829e-02 & 99.99 \\
+ & Offset -0.4 & 41.305 & 4.545e-20 & 28.51 \\
+ & Offset 0.4 & 26.519 & 1.790e-16 & 11.80 \\
+\hline
+\multirow{4}{*}{PerturbationReLU}
+ & Scale 0.5 & -3.689 & 1.558e-03 & 98.33 \\
+ & Scale 2.0 & -3.202 & 4.693e-03 & 98.33 \\
+ & Offset -0.4 & 40.709 & 5.973e-20 & 80.38 \\
+ & Offset 0.4 & 37.155 & 3.319e-19 & 50.99 \\
+\hline
+\end{tabular}
+\caption{Statistical significance of perturbation effects compared to baseline performance.}
+\label{tab:ttest}
+\end{table}
 
-The high correlation for the Abs network confirms its symmetric behavior, while the lower, non-significant correlation for the ReLU network supports its asymmetric nature.
-
-The distinct patterns observed in our experiments provide strong empirical validation for the theoretical connection between neural networks and statistical distance metrics, while also highlighting important differences in how various activation functions implement these computations.
+We observe a transition point in the intensity perturbation results around scale factor 0.08, where both models begin to show degraded performance. We believe this represents the scale at which intensity-based activations approach the magnitude range where distance-based features typically operate.
