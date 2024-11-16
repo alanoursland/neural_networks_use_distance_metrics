@@ -71,16 +71,6 @@ def load_and_process_results(filepath):
     return stats_dict
 
 def plot_results(stats_dict, publication_ready=False):
-    for model_name, stats in stats_dict.items():
-        print(f"Model: {model_name}")
-        print(f"Scale X shape: {stats['scale']['x'].shape}")
-        print(f"Scale Mean shape: {stats['scale']['mean'].shape}")
-        print(f"Clip X shape: {stats['clip']['x'].shape}")
-        print(f"Clip Mean shape: {stats['clip']['mean'].shape}")
-        print(f"Offset X shape: {stats['offset']['x'].shape}")
-        print(f"Offset Mean shape: {stats['offset']['mean'].shape}")
-
-
     """Create plots with confidence intervals"""
     if publication_ready:
         seaborn.set_theme()
@@ -210,14 +200,14 @@ def perform_ttests(filepath):
         print("Offset |  T-statistic  |  P-value  | Mean Accuracy")
         print("-" * 55)
         
-        offset_points = [-0.6, -0.4, -0.2, 0.2, 0.4, 0.6]
+        offset_points = [-0.8, -0.4, -0.2, -0.1, -0.04, -0.03, -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.04, 0.1, 0.2, 0.4, 0.8]
         offset_x = model_runs[0]['offset_values']
         for offset in offset_points:
             idx = np.abs(offset_x - offset).argmin()
             offset_accs = [run['offset_accuracies'][idx] for run in model_runs]
             t_stat, p_val = stats.ttest_rel(baseline_offset, offset_accs)
             mean_acc = np.mean(offset_accs)
-            print(f"{offset:6.1f} |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
+            print(f"{offset:6.2f} |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
 
 def main():
     # Load and analyze results

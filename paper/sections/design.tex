@@ -58,9 +58,9 @@ Distance-based features are expected to lie near the decision boundary. By shift
 
 We lack a statistical framework for intensity metrics, so we rely on heuristics to identify perturbations that might disrupt them. Two operations are tested: scaling and clipping.
 
-\paragraph{Scaling.} This operation multiplies node outputs by a scalar value. For a scaling percentage $s$, the perturbation parameters are:
+\paragraph{Scaling.} This operation multiplies node outputs by a scalar value. For a scaling percentage $p$, the perturbation parameters are:
 \begin{align}
-    \text{scale} &= s, \\
+    \text{scale} &= p, \\
     \text{offset} &= 0, \\
     \text{clip} &= \infty.
 \end{align}
