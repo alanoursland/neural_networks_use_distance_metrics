@@ -1,5 +1,7 @@
 \section{Discussion}
 
+We explore how ReLU and Abs activations represent features within a distance metric interpretation. Figure~\ref{fig:activation_demo} illustrates the key differences in how these activation functions process information. In the pre-activation space (Figures~\ref{fig:relu_pre} and~\ref{fig:abs_pre}), both models can learn similar linear projections of input features. ReLU is driven to minimize the active feature $\left\{ c \right\}$ and ends up being positioned on the positive edge of the distribution. Abs positions the decision boundary through the mean, or possibly the median, of the data. After activation, ReLU sets all features on its dark side to the minimum possible distance: zero. Abs folds the space, moving all distributions on the negative side to the positive side. The ReLU activated node, selects for features $\left\{ a, b, c \right\}$. The folding operation of the Abs activated feature results in $\left\{ c \right\}$ being the sole feature with the smallest activation value.
+
 \begin{figure}[t]
     \centering
 
@@ -34,8 +36,6 @@
     \caption{This series of figures represents our theory on how linear nodes learn features with ReLU and Absolute Value activation functions. Each blue peak corresponds to a feature (a-e) in the hypothetical dataset, and the red dashed line denotes the decision boundary defined by the node. In the top row, the features are positioned according to their initial linear projections. The bottom row illustrates the transformed values after applying each activation function, highlighting the distinct ways that ReLU and Absolute Value modify feature space representations.}
     \label{fig:activation_demo}
 \end{figure}
-
-To aid in discussion, we explore how ReLU and Abs activations represent features within a distance metric interpretation. Figure~\ref{fig:activation_demo} illustrates the key differences in how these activation functions process information. In the pre-activation space (Figures~\ref{fig:relu_pre} and~\ref{fig:abs_pre}), both models can learn similar linear projections of input features. ReLU is driven to minimize the active feature $\left\{ c \right\}$ and ends up being positioned on the positive edge of the distribution. Abs positions the decision boundary through the mean, or possibly the median, of the data. After activation, ReLU sets all features on its dark side to the minimum possible distance: zero. Abs folds the space, moving all distributions on the negative side to the positive side. The ReLU activated node, selects for features $\left\{ a, b, c \right\}$. The folding operation of the Abs activated feature results in $\left\{ c \right\}$ being the sole feature with the smallest activation value.
 
 \subsection{Intensity Perturbations}
 
@@ -111,13 +111,25 @@ It is really difficult to explain why something that is poorly defined doesn't b
     \label{fig:abs_offset_up}
     \end{subfigure}
 
-    \caption{Effects of decision boundary offsets on feature representation. The top row shows negative offsets  and the bottom row shows positive offsets for both ReLU and Abs activated nodes.}
+    \caption{Effects of decision boundary offsets on feature representation. The top row shows negative offsets and the bottom row shows positive offsets for both ReLU and Abs activated nodes.}
     \label{fig:offset_demo}
 \end{figure}
 
 Figure~\ref{fig:offset_demo} demonstrates how offset perturbations affect feature selection. ReLU either adds or removes features to its accepted feature set. Figure a shows removes $c$ from the accept set leaving only $\left\{ a, b \right\}$. Figure c, shows ReLU accepting $\left\{ a, b, c, d \right\}$. Offset perturbations in ReLU result in incremental changes to the accept set and we can see that with the gradual performance degradation in Figure~\ref{fig:perturbation_analysis}. Abs, however, selects a single feature. Under negative offset, it shifts to select feature $\{b\}$ instead of its trained feature $\{c\}$. Under positive offset, features $\{c,d\}$ become the minimum values but neither aligns with the decision boundary and it could be interpreted as an empty set. These complete changes in feature selection explain the dramatic performance impact even with small perturbations.
 
 The analysis of intensity features has a similar problem as the scale perturbations. TODO!!!
+
+\subsection(ReLU is More Resliliant to Perturbation)
+
+ReLU is forced to select multiple features at once. That feature mixture allows for a graceful degradation of performance during perturbation. Abs selects a single feature and has more of an "all or nothing" failure response.
+
+\subsection(Cutoff Convenience)
+
+Cutoff degredation begins picking up speed below 50\% of the output range. I find it a little too convenient that the top 50th percetile might be intensity features and the bottom 50th percentile might be distance.
+
+\subsection(The Problem with Scaling)
+
+Discuss LogSoftmax and how it rescales everything and this motivated us to test with cutoff. But then why does it fail with very small scaling?
 
 \subsection{The Problem with Intensity}
 
@@ -128,3 +140,5 @@ The lack of a clear mathematical foundation for intensity metrics is particularl
 Our scaling experiments highlight this definitional problem. If nodes measure intensity, how should scaling affect their measurements? One might expect that doubling a strong signal should make it stronger, yet our networks maintain consistent behavior under scaling. We could propose that relative values between nodes preserve the intensity information, but this begins to sound suspiciously like a distance metric in disguise.
 
 The distance features in the network are easily explained as a Mahalanobis distance of a principal component as described in \cite{oursland2024interpreting}. But what is the statistical meaning behind the intensity features? It implies a complement to the principal component, a principal disponent consisting of an antivector, antivalue and an unmean. I don't think that principal disponents are real. What looks like an intensity metric is really a distance metric that matches everything except the large value. Perhaps statistical network interpretation has stymied researchers because we have been looking for the mathematical equivalent of Big Foot or the Loch Ness Monster.
+
+More work is needed to understand the validity of intensity metrics.
