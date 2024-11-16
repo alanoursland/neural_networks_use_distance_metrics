@@ -32,10 +32,12 @@ def load_and_process_results(filepath):
         
         # Get x values (same across all runs)
         scale_x = model_runs[0]['scale_values']
+        clip_x = model_runs[0]['clip_values']
         offset_x = model_runs[0]['offset_values']
         
         # Stack all runs into arrays
         scale_accs = np.stack([run['scale_accuracies'] for run in model_runs])
+        clip_accs = np.stack([run['clip_accuracies'] for run in model_runs])
         offset_accs = np.stack([run['offset_accuracies'] for run in model_runs])
         
         # Compute statistics
@@ -48,6 +50,14 @@ def load_and_process_results(filepath):
                                     loc=np.mean(scale_accs, axis=0),
                                     scale=stats.sem(scale_accs, axis=0))
             },
+            'clip': {
+                'x': clip_x,
+                'mean': np.mean(clip_accs, axis=0),
+                'std': np.std(clip_accs, axis=0),
+                'ci': stats.t.interval(0.95, len(model_runs)-1, 
+                                    loc=np.mean(clip_accs, axis=0),
+                                    scale=stats.sem(clip_accs, axis=0))
+            },
             'offset': {
                 'x': offset_x,
                 'mean': np.mean(offset_accs, axis=0),
@@ -58,14 +68,21 @@ def load_and_process_results(filepath):
             }
         }
     
-    # print(stats_dict)
     return stats_dict
 
 def plot_results(stats_dict, publication_ready=False):
+    for model_name, stats in stats_dict.items():
+        print(f"Model: {model_name}")
+        print(f"Scale X shape: {stats['scale']['x'].shape}")
+        print(f"Scale Mean shape: {stats['scale']['mean'].shape}")
+        print(f"Clip X shape: {stats['clip']['x'].shape}")
+        print(f"Clip Mean shape: {stats['clip']['mean'].shape}")
+        print(f"Offset X shape: {stats['offset']['x'].shape}")
+        print(f"Offset Mean shape: {stats['offset']['mean'].shape}")
+
+
     """Create plots with confidence intervals"""
     if publication_ready:
-        # Publication style settings
-        # plt.style.use('seaborn-paper')
         seaborn.set_theme()
         plt.rcParams.update({
             'font.size': 12,
@@ -75,7 +92,7 @@ def plot_results(stats_dict, publication_ready=False):
             'ytick.labelsize': 12,
             'legend.fontsize': 12,
             'figure.dpi': 300,
-            'figure.figsize': (10, 4.5),  # Adjusted for better aspect ratio
+            'figure.figsize': (10, 4.5),
             'axes.grid': True,
             'grid.alpha': 0.3,
             'lines.linewidth': 2
@@ -83,26 +100,37 @@ def plot_results(stats_dict, publication_ready=False):
     
     fig, (ax1, ax2) = plt.subplots(1, 2)
     
-    # Plot scaling results
+    # Plot scaling and clipping results
     ax1.set_title('(a) Intensity Perturbation')
-    ax1.set_xlabel('Scale Factor')
+    ax1.set_xlabel('Scale/Clip Factor')
     ax1.set_ylabel('Accuracy (%)')
     ax1.set_xscale('log')
     ax1.set_ylim(0, 102)
     
-    for model_name, color, style in [
-        ('PerturbationAbs', '#1f77b4', '-'), 
-        ('PerturbationReLU', '#d62728', '--')
-    ]:
-        stats = stats_dict[model_name]['scale']
+    colors = {'PerturbationAbs': '#1f77b4', 'PerturbationReLU': '#d62728'}
+    
+    for model_name in ['PerturbationAbs', 'PerturbationReLU']:
+        color = colors[model_name]
+        label_base = 'Abs' if 'Abs' in model_name else 'ReLU'
         
-        # Plot mean line
+        # Plot scaling results
+        stats = stats_dict[model_name]['scale']
         ax1.plot(stats['x'], stats['mean'], 
                 color=color, 
-                linestyle=style,
-                label='Abs' if 'Abs' in model_name else 'ReLU')
+                linestyle='-',
+                label=f'{label_base} Scale')
+        ax1.fill_between(stats['x'], 
+                        stats['ci'][0], 
+                        stats['ci'][1],
+                        color=color, 
+                        alpha=0.15)
         
-        # Plot confidence interval
+        # Plot clipping results
+        stats = stats_dict[model_name]['clip']
+        ax1.plot(stats['x'], stats['mean'], 
+                color=color, 
+                linestyle='--',
+                label=f'{label_base} Clip')
         ax1.fill_between(stats['x'], 
                         stats['ci'][0], 
                         stats['ci'][1],
@@ -113,23 +141,18 @@ def plot_results(stats_dict, publication_ready=False):
     
     # Plot offset results
     ax2.set_title('(b) Distance Perturbation')
-    ax2.set_xlabel('Offset')
+    ax2.set_xlabel('Offset Percent')
     ax2.set_ylabel('Accuracy (%)')
     ax2.set_ylim(0, 102)
 
-    for model_name, color, style in [
-        ('PerturbationAbs', '#1f77b4', '-'), 
-        ('PerturbationReLU', '#d62728', '--')
-    ]:
-        stats = stats_dict[model_name]['offset']
+    for model_name in ['PerturbationAbs', 'PerturbationReLU']:
+        color = colors[model_name]
         
-        # Plot mean line
+        stats = stats_dict[model_name]['offset']
         ax2.plot(stats['x'], stats['mean'], 
                 color=color, 
-                linestyle=style,
+                linestyle='-',
                 label='Abs' if 'Abs' in model_name else 'ReLU')
-        
-        # Plot confidence interval
         ax2.fill_between(stats['x'], 
                         stats['ci'][0], 
                         stats['ci'][1],
@@ -143,7 +166,7 @@ def plot_results(stats_dict, publication_ready=False):
                 bbox_inches='tight',
                 pad_inches=0.1)
     plt.close()
-    
+
 def perform_ttests(filepath):
     """Test whether each model's behavior aligns with intensity or distance features"""
     results = torch.load(filepath)
@@ -154,14 +177,14 @@ def perform_ttests(filepath):
         
         # Get baseline accuracies (no perturbation)
         baseline_scale = [run['scale_accuracies'][50] for run in model_runs]  # middle of scale range
-        baseline_offset = [run['offset_accuracies'][50] for run in model_runs]  # zero offset point
+        baseline_clip = [run['clip_accuracies'][50] for run in model_runs]    # middle of clip range
+        baseline_offset = [run['offset_accuracies'][50] for run in model_runs] # zero offset point
         
         print("\nIntensity (Scale) Test:")
         print("Scale  |  T-statistic  |  P-value  | Mean Accuracy")
         print("-" * 55)
         
-        # Test several scale points
-        scale_points = [0.5, 2.0]  # Example scale factors
+        scale_points = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 2.0]
         scale_x = model_runs[0]['scale_values']
         for scale in scale_points:
             idx = np.abs(scale_x - scale).argmin()
@@ -170,12 +193,24 @@ def perform_ttests(filepath):
             mean_acc = np.mean(scale_accs)
             print(f"{scale:5.1f}  |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
         
+        print("\nIntensity (Clip) Test:")
+        print("Clip   |  T-statistic  |  P-value  | Mean Accuracy")
+        print("-" * 55)
+        
+        clip_points = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 2.0]
+        clip_x = model_runs[0]['clip_values']
+        for clip in clip_points:
+            idx = np.abs(clip_x - clip).argmin()
+            clip_accs = [run['clip_accuracies'][idx] for run in model_runs]
+            t_stat, p_val = stats.ttest_rel(baseline_clip, clip_accs)
+            mean_acc = np.mean(clip_accs)
+            print(f"{clip:5.1f}  |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
+        
         print("\nDistance (Offset) Test:")
         print("Offset |  T-statistic  |  P-value  | Mean Accuracy")
         print("-" * 55)
         
-        # Test several offset points
-        offset_points = [-0.4, -0.2, 0.2, 0.4]
+        offset_points = [-0.6, -0.4, -0.2, 0.2, 0.4, 0.6]
         offset_x = model_runs[0]['offset_values']
         for offset in offset_points:
             idx = np.abs(offset_x - offset).argmin()
@@ -183,7 +218,6 @@ def perform_ttests(filepath):
             t_stat, p_val = stats.ttest_rel(baseline_offset, offset_accs)
             mean_acc = np.mean(offset_accs)
             print(f"{offset:6.1f} |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
-
 
 def main():
     # Load and analyze results

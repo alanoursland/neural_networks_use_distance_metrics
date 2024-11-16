@@ -15,11 +15,14 @@ class PerturbationLayer(nn.Module):
     def __init__(self, size):
         super(PerturbationLayer, self).__init__()
         # Initialize a and b with default values
-        self.a = nn.Parameter(torch.ones(size), requires_grad=False)
-        self.b = nn.Parameter(torch.zeros(size), requires_grad=False)
+        self.s = nn.Parameter(torch.ones(size), requires_grad=False)
+        self.t = nn.Parameter(torch.zeros(size), requires_grad=False)
+        # Initialize clipping values to infinity (no clipping by default)
+        self.clip = nn.Parameter(torch.full((size,), float('inf')), requires_grad=False)
     
     def forward(self, x):
-        return self.a * x + self.b
+        # Apply scaling and offset, then clip
+        return torch.minimum(self.s * x + self.t, self.clip)
 
 # Define the MLP model
 class Model_PerturbationReLU(nn.Module):

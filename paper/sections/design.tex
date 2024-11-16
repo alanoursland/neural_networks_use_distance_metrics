@@ -1,6 +1,6 @@
 \section{Experimental Design}
 
-To empirically investigate whether neural networks naturally learn distance-based features, we designed systematic perturbation experiments that differentiate between distance-based and intensity-based feature learning. Our experimental framework enables direct comparison between these two interpretations by examining how learned features respond to specific modifications of their activation patterns.
+To empirically investigate whether neural networks naturally learn distance-based features, we designed systematic perturbation experiments that differentiate between distance-based and intensity-based feature learning. Our experimental framework enables direct comparison between these two interpretations by examining how learned features respond to specific modifications of their activation patterns. We predict that perturbing the "true representation" will result in a model accuracy drop.
 
 \subsection{Model Architecture}
 We implemented a simple feedforward neural network architecture to test our hypotheses. The network processes MNIST digits through the following layers:
@@ -12,13 +12,13 @@ We implemented a simple feedforward neural network architecture to test our hypo
     \item Output layer (10 units)
 \end{enumerate}
 
-The perturbation layer is a custom module that allows precise control over the activation patterns through two fixed parameters: a multiplicative factor $s$ and a translational offset $t$. During training, these parameters are held constant ($s=1$, $t=0$) so the layer has no effect on the network's learning. After training, we can modify these parameters to probe the network's learned features. For any input $x$, the perturbation layer computes:
+The perturbation layer is a custom module that allows precise control over the activation patterns through three fixed parameters: a multiplicative factor $s$; a translational offset $t$; and a clipping threshold $clip$. During training, these parameters are held constant ($s=1$, $t=0$, $clip=Inf$) so the layer has no effect on the network's learning. After training, we can modify these parameters to probe the network's learned features. For any input $x$, the perturbation layer computes:
 
 \begin{equation}
-    \text{output} = sx + t
+    \text{output} = \min(scale \cdot x + offset, \text{clip})
 \end{equation}
 
-where $s$ and $t$ can be set independently for each unit in the layer to create controlled modifications of the activation patterns.
+where $s$, $t$, and $clip$ can be set independently for each unit in the layer to create controlled modifications of the activation patterns.
 
 \subsection{Training Protocol}
 We trained on MNIST using standard classification procedures. For convenience and speed, we use the entire training set for each parameter update instead of minibatch training. This necessitates a larger number of epochs (5000) since we only update parameters once per epoch. Other training parameters include:
@@ -43,23 +43,37 @@ The distance perturbation is designed to affect small activation values while pr
 
 For a given percentage $p$ and range $r$, the perturbation parameters are:
 \begin{align}
-a &= 1 - p \label{eq:scale} \
-b &= pr \label{eq:offset}
+    scale &= (1-p) r \
+    offset &= p r \
+    cutoff &= Inf
 \end{align}
 
 This perturbation specifically targets distance-like features by shifting their "zero point" (the location of best matches) while maintaining the overall dynamic range. If the model is using distance metric features, small shifts near zero should significantly impact accuracy, as this moves the decision boundary away from true matches.
 
 \subsubsection{Intensity Perturbation}
-The intensity perturbation is a pure scaling operation that affects large activation values while preserving near-zero values. For a scale factor $s$:
+We do not understand the statistical backing for intensity metrics. We have to guess what perturbations might disrupt them. We test with two distinct operations: Scaling and Clipping.
+
+Scaling simply multiplies the node outputs by a scalar value. The larger the value, the greater the distance the scaled value will be from its original value. Values near the decision boundary, will end up with small to zero changes. For a scale percentage $s$, the perturbation parameters are:
 \begin{align}
-    a &= s \\
-    b &= 0
+    scale &= s \\
+    offset &= 0 \\
+    cutoff = Inf
 \end{align}
 
 This perturbation tests for intensity-based feature learning, where larger activations indicate stronger feature presence. If the model is using intensity metric features, performance should decrease as the activation values changes. In either case, we expect performance to drop when activations are scaled small enough to intersect with the distance metric space.
 
+We considered that intensity features may use relative distances between high activation features. To test this definition for intensity, we clip the activation to a maximum value. This destroys information and prevents following layers from being able to distinguish between features above the cutoff value. For given percentage $p$ and range $r$, the perturbation parameters are:
+
+\begin{align}
+    scale &= 1 \\
+    offset &= 0 \\
+    cutoff = p r
+\end{align}
+
 \subsubsection{Perturbation Ranges}
-We applied perturbations across carefully selected ranges to capture the full spectrum of behavior, with bounds selected to induce failure conditions:
+
+We apply the perturbation ranges to cover a wide spectrum. The intensity metrics ranges were explictly chosen to intersect with the distance ranges to induce performance failures. We made the cutoff ranges the same as scaling to display them easily on the same graph. Cutoff values above 100\% have zero effect on the base model. All percentages are applied to individual node ranges over the input set.
+
 
 \begin{table}[h]
 \centering
@@ -67,8 +81,9 @@ We applied perturbations across carefully selected ranges to capture the full sp
 \hline
 \textbf{Perturbation Type} & \textbf{Range} \\
 \hline
-Distance & $[-2.0, 1.0]$ relative to activation range \\
-Intensity & $[0.01, 10.0]$ logarithmic scale \\
+Intensity & $[1\%, 1000\%]$  \\
+Cutoff & $[1\%, 1000\%]$  \\
+Distance & $[-200\%, 100\%]$  \\
 \hline
 \end{tabular}
 \end{table}
@@ -77,7 +92,7 @@ Intensity & $[0.01, 10.0]$ logarithmic scale \\
 \subsection{Evaluation}
 For each perturbation configuration, we:
 \begin{enumerate}
-    \item Apply the perturbation to all nodes in the perturbation layer
+    \item Apply the perturbation to all nodes in the perturbation layer at many points in the perturbation range
     \item Measure the model's accuracy on the training set
     \item Record the accuracy change from baseline
 \end{enumerate}

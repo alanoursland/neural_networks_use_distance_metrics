@@ -1,131 +1,130 @@
 \section{Discussion}
 
-Our empirical results provide strong validation of the theoretical connection between neural networks and Mahalanobis distance, while also revealing nuanced behaviors that extend beyond the original framework. Here we explore the implications of these findings and their potential impact on neural network design and interpretation.
+\begin{figure}[t]
+    \centering
 
-\subsection{Support for Distance Metric Hypothesis}
+    \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/activation_demo_relu_pre}
+    \caption{ReLU pre-activation projection}
+    \label{fig:relu_pre}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/activation_demo_abs_pre}
+    \caption{Abs pre-activation projection}
+    \label{fig:abs_pre}
+    \end{subfigure}
 
-The experimental results offer compelling evidence for interpreting neural networks through the lens of statistical distance metrics:
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/activation_demo_relu_post}
+        \caption{ReLU post-activation response}
+        \label{fig:relu_post}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/activation_demo_abs_post}
+        \caption{Abs post-activation response}
+        \label{fig:abs_post}
+    \end{subfigure}
 
-\subsubsection{Absolute Value Networks}
-The perfect intensity invariance and symmetric distance response of Abs networks align precisely with theoretical predictions:
+    \caption{This series of figures represents our theory on how linear nodes learn features with ReLU and Absolute Value activation functions. Each blue peak corresponds to a feature (a-e) in the hypothetical dataset, and the red dashed line denotes the decision boundary defined by the node. In the top row, the features are positioned according to their initial linear projections. The bottom row illustrates the transformed values after applying each activation function, highlighting the distinct ways that ReLU and Absolute Value modify feature space representations.}
+    \label{fig:activation_demo}
+\end{figure}
 
-\begin{itemize}
-    \item \textbf{Scale Invariance:} The constant accuracy (95.32\%) across all intensity perturbations ($\alpha \in [0.0, 1.6]$) demonstrates that Abs networks learn pure distance metrics invariant to scaling.
-    
-    \item \textbf{Symmetric Degradation:} The nearly symmetric accuracy decay under positive and negative distance perturbations mirrors the behavior of Gaussian probability densities, supporting the interpretation of neurons as learning principal components of Gaussian distributions.
-    
-    \item \textbf{Prototype Learning:} The sharp accuracy peak at $\delta = 0$ suggests neurons successfully learn meaningful prototypes (means) of the underlying data distribution.
-\end{itemize}
+To aid in discussion, we explore how ReLU and Abs activations represent features within a distance metric interpretation. Figure~\ref{fig:activation_demo} illustrates the key differences in how these activation functions process information. In the pre-activation space (Figures~\ref{fig:relu_pre} and~\ref{fig:abs_pre}), both models can learn similar linear projections of input features. ReLU is driven to minimize the active feature $\left\{ c \right\}$ and ends up being positioned on the positive edge of the distribution. Abs positions the decision boundary through the mean, or possibly the median, of the data. After activation, ReLU sets all features on its dark side to the minimum possible distance: zero. Abs folds the space, moving all distributions on the negative side to the positive side. The ReLU activated node, selects for features $\left\{ a, b, c \right\}$. The folding operation of the Abs activated feature results in $\left\{ c \right\}$ being the sole feature with the smallest activation value.
 
-\subsubsection{ReLU Networks}
-The behavior of ReLU networks reveals a more complex relationship with distance metrics:
+\subsection{Intensity Perturbations}
 
-\begin{itemize}
-    \item \textbf{Quasi-Invariance:} The minimal variation in accuracy (95.80\% to 95.83\%) under intensity scaling suggests ReLU networks approximate distance computations despite their one-sided nature.
-    
-    \item \textbf{Asymmetric Response:} The marked difference in response to positive versus negative distance perturbations indicates that ReLU networks implement a modified form of distance computation adapted to their activation constraints.
-    
-    \item \textbf{Robustness to Negative Shifts:} The high accuracy maintenance under negative $\delta$ values suggests ReLU networks develop compensatory mechanisms in their second layer weights.
-\end{itemize}
+\begin{figure}[t]
+    \centering
 
-\subsection{Theoretical Implications}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/tbd}
+        \caption{ReLU Scaling Down 0.5x}
+        \label{fig:relu_scale_down}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/tbd}
+        \caption{Abs Scaling Down 0.5x}
+        \label{fig:relu_scale_down}
+    \end{subfigure}
 
-Our findings extend the theoretical framework in several important ways:
+    \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/tbd}
+    \caption{ReLU Scaling Up 2x}
+    \label{fig:relu_scale_up}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/tbd}
+    \caption{Abs Scaling Up 2x}
+    \label{fig:abs_scale_up}
+    \end{subfigure}
 
-\subsubsection{Activation Function Role}
-The distinct behaviors of Abs and ReLU networks suggest activation functions play a dual role:
+    \caption{Effects of scaling on feature representation. The top row shows scaling down (0.5x) and the bottom row shows scaling up (2.0x) for both ReLU and Abs activated nodes.}
+    \label{fig:scaling_demo}
+\end{figure}
 
-\begin{equation}
-    g(Wx + b) = \begin{cases}
-        \text{Pure distance metric (Abs)} \\
-        \text{Hybrid metric with learned compensation (ReLU)}
-    \end{cases}
-\end{equation}
+We extend our discussion with Figure~\ref{fig:scaling_demo} to demonstrate how scaling does not affect distance feature selection, but could affect intensity feature selection. All of the ReLU features are still zero. The minimum Abs feature is still the minimum. It is unclear how intensity features would be interpreted. If the following layers look for features in a band of activation values, they will find different features. CrossEntopyLoss does normalize everything at the output. If that property passes through to the hidden layer, I supposed the relative values across wouldn't change things. This needs more work. I need to see if the scale values are different for different nodes. TODO!!!
 
-This duality explains why ReLU networks can achieve comparable performance while maintaining better gradient properties during training.
+It is really difficult to explain why something that is poorly defined doesn't break.
 
-\subsubsection{Geometric Interpretation}
-The perturbation responses reveal the geometric properties of learned features:
+\subsection{Offset Perturbations}
 
-\begin{itemize}
-    \item Abs neurons implement symmetric decision boundaries centered on learned prototypes
-    \item ReLU neurons create asymmetric boundaries that preserve distance-like properties in their positive activation region
-    \item The network learns to compose these boundaries to form effective decision regions
-\end{itemize}
+\begin{figure}[t]
+    \centering
 
-\subsection{Practical Implications}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/tbd}
+        \caption{ReLU Offset Negative}
+        \label{fig:relu_offset_down}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/tbd}
+        \caption{Abs Offset Negative}
+        \label{fig:abs_offset_down}
+    \end{subfigure}
 
-Our results suggest several practical recommendations for neural network design:
+    \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/tbd}
+    \caption{ReLU Offset Positive}
+    \label{fig:relu_offset_up}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{images/tbd}
+    \caption{Abs Offset Positive}
+    \label{fig:abs_offset_up}
+    \end{subfigure}
 
-\subsubsection{Architecture Selection}
-\begin{itemize}
-    \item Use Abs activation when:
-        \begin{itemize}
-            \item Interpretability is crucial
-            \item Distance-based feature learning is desired
-            \item The task benefits from symmetric decision boundaries
-        \end{itemize}
-    \item Use ReLU activation when:
-        \begin{itemize}
-            \item Training dynamics are prioritized
-            \item Asymmetric feature detection is beneficial
-            \item The task requires robustness to negative shifts
-        \end{itemize}
-\end{itemize}
+    \caption{Effects of decision boundary offsets on feature representation. The top row shows negative offsets  and the bottom row shows positive offsets for both ReLU and Abs activated nodes.}
+    \label{fig:offset_demo}
+\end{figure}
 
-\subsubsection{Model Initialization}
-The confirmation of distance metric learning suggests improved initialization strategies:
+Figure~\ref{fig:offset_demo} demonstrates how offset perturbations affect feature selection. ReLU either adds or removes features to its accepted feature set. Figure a shows removes $c$ from the accept set leaving only $\left\{ a, b \right\}$. Figure c, shows ReLU accepting $\left\{ a, b, c, d \right\}$. Offset perturbations in ReLU result in incremental changes to the accept set and we can see that with the gradual performance degradation in Figure~\ref{fig:perturbation_analysis}. Abs, however, selects a single feature. Under negative offset, it shifts to select feature $\{b\}$ instead of its trained feature $\{c\}$. Under positive offset, features $\{c,d\}$ become the minimum values but neither aligns with the decision boundary and it could be interpreted as an empty set. These complete changes in feature selection explain the dramatic performance impact even with small perturbations.
 
-\begin{itemize}
-    \item Initialize weights to approximate principal components of input data
-    \item Set biases to estimated cluster means
-    \item Scale initial weights by estimated cluster variances
-\end{itemize}
+The analysis of intensity features has a similar problem as the scale perturbations. TODO!!!
 
-\subsubsection{Feature Interpretation}
-Our findings enable more principled feature visualization:
+\subsection{The Problem with Intensity}
 
-\begin{itemize}
-    \item For Abs networks: Interpret features as symmetric deviations from prototypes
-    \item For ReLU networks: Focus on positive activation regions while accounting for asymmetry
-    \item Use perturbation responses to identify learned prototype locations
-\end{itemize}
+Our perturbation analysis appears to support distance-based feature interpretation, but we must address a significant challenge: we cannot definitively disprove intensity-based interpretations because there is no consensus on what constitutes an intensity feature. The field has proposed multiple interpretations over decades of research, yet none has emerged as definitive. Is an intensity feature indicated by maximum activation? Does it require values within a specific range? Should we consider activation values relative to other nodes? Do we need to account for normalization effects between layers?
 
-\subsection{Limitations and Future Work}
+The lack of a clear mathematical foundation for intensity metrics is particularly troubling. While distance metrics like Euclidean and Mahalanobis distances are well-defined statistical measures with clear linear formulations, we find no equivalent statistical measure for intensity that can be expressed through a linear equation. This absence is striking given the extensive study of linear methods in statistics. Without a well-defined statistical basis, intensity remains a nebulous concept, open to broad interpretations. This absence of a clear metric foundation makes it challenging to assess intensity features rigorously, raising the question of whether they are simply a subset of distance metrics in disguise.
 
-Several important questions remain for future investigation:
+Our scaling experiments highlight this definitional problem. If nodes measure intensity, how should scaling affect their measurements? One might expect that doubling a strong signal should make it stronger, yet our networks maintain consistent behavior under scaling. We could propose that relative values between nodes preserve the intensity information, but this begins to sound suspiciously like a distance metric in disguise.
 
-\subsubsection{Architectural Scaling}
-\begin{itemize}
-    \item How do these findings extend to deeper networks?
-    \item Can distance metric interpretation improve skip connection design?
-    \item How do attention mechanisms interact with distance-based features?
-\end{itemize}
-
-\subsubsection{Training Dynamics}
-\begin{itemize}
-    \item What role does distance metric learning play in optimization?
-    \item Can perturbation analysis guide learning rate scheduling?
-    \item How do different optimizers affect distance metric acquisition?
-\end{itemize}
-
-\subsubsection{Alternative Activations}
-Further investigation is needed for:
-\begin{itemize}
-    \item Leaky ReLU and PReLU variations
-    \item Sigmoid and tanh activations
-    \item Modern alternatives like GELU and Swish
-\end{itemize}
-
-\subsection{Broader Impact}
-
-The validation of distance metric learning in neural networks has significant implications:
-
-\begin{itemize}
-    \item \textbf{Interpretability:} Provides a rigorous framework for understanding neural network decisions
-    \item \textbf{Architecture Design:} Suggests principles for developing more interpretable networks
-    \item \textbf{Theoretical Understanding:} Bridges neural networks with classical statistical methods
-    \item \textbf{Practical Applications:} Enables more principled feature engineering and model analysis
-\end{itemize}
-
-These insights could be particularly valuable in domains requiring interpretable AI, such as healthcare, finance, and autonomous systems, where understanding model behavior is crucial for deployment and validation. 
+The distance features in the network are easily explained as a Mahalanobis distance of a principal component as described in \cite{oursland2024interpreting}. But what is the statistical meaning behind the intensity features? It implies a complement to the principal component, a principal disponent consisting of an antivector, antivalue and an unmean. I don't think that principal disponents are real. What looks like an intensity metric is really a distance metric that matches everything except the large value. Perhaps statistical network interpretation has stymied researchers because we have been looking for the mathematical equivalent of Big Foot or the Loch Ness Monster.

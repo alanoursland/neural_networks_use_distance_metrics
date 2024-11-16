@@ -1,48 +1,12 @@
 \section{Introduction}
 
-Neural networks have achieved remarkable success across diverse applications, yet their interpretability remains a significant challenge. Recent theoretical work has proposed a novel framework connecting neural network architectures to the Mahalanobis distance \cite{oursland2024interpreting}, suggesting that individual neurons can be understood as learning statistical distances from prototypical features. While this theoretical connection offers promising insights into neural network interpretation, empirical validation is crucial to establish its practical relevance and implications.
+Rosenblatt's 1958 perceptron pioneered the use of activation values as confidence measures, establishing a paradigm where larger neural network outputs signify stronger feature representations. While this interpretation has supported remarkable achievements across diverse applications, the statistical principles underlying neural network feature learning remain incompletely understood.
 
-The Mahalanobis distance framework proposes that linear layers with absolute value activations can be interpreted as approximating principal components of Gaussian distributions, with each neuron computing a distance from a learned prototype. This perspective challenges the traditional view of neural network activations as purely intensity-based feature detectors and suggests a more nuanced interpretation based on statistical distance metrics.
+This work builds on our recent theoretical framework [Oursland, 2024] that proposed neural networks might naturally learn to compute statistical distance metrics, particularly the Mahalanobis distance. While this previous work established a mathematical relationship between neural network linear layers and this statistical distance measure, offering a more rigorous interpretation of their operations, the existence of such a relationship does not necessarily imply that networks employ these computations in practice. This paper presents empirical evidence to validate these theoretical predictions through systematic perturbation analysis.
 
-Consider a linear layer with weights $W$ and bias $b$, followed by an absolute value activation:
-\begin{equation}
-    y = |Wx + b|
-\end{equation}
-The theoretical framework suggests this can be rewritten as:
-\begin{equation}
-    y = |\lambda^{-1/2}_i v^T_i(x - \mu)|
-\end{equation}
-where $v_i$ is a principal component direction, $\lambda_i$ is its corresponding eigenvalue, and $\mu$ is the prototype (mean) for that feature. This formulation directly connects neural network computations to statistical distances in the input space.
+This paper presents empirical evidence supporting the distance metric interpretation through systematic perturbation analysis. Using the MNIST dataset, we implement controlled perturbation experiments that independently manipulate distance and intensity properties of network activations. By analyzing how these perturbations affect model performance, we determine which properties drive network behavior. Our investigation focuses on two key questions:
 
-Our work provides empirical validation of this theoretical connection through systematic perturbation analysis. We investigate two fundamental types of perturbations:
-\begin{enumerate}
-    \item \textit{Intensity perturbations} that scale the activation magnitude:
-        \begin{equation}
-            y = (1 + \alpha)|Wx + b|
-        \end{equation}
-    \item \textit{Distance perturbations} that shift the decision boundary:
-        \begin{equation}
-            y = |Wx + b + \delta|
-        \end{equation}
-\end{enumerate}
+1. Do neural networks naturally learn to measure distances rather than intensities when processing data distributions?
+2. How do different activation functions (ReLU and Absolute Value) affect the type of statistical measures learned by the network?
 
-If neurons indeed learn statistical distances, we expect specific patterns in their response to these perturbations. Distance-based features should be invariant to intensity scaling but highly sensitive to boundary shifts, while traditional intensity-based features would show different characteristics. We examine these predictions through careful empirical analysis of networks trained on the MNIST dataset, comparing absolute value and ReLU activations.
-
-Our investigation addresses three key research questions:
-\begin{enumerate}
-    \item How do different activation functions respond to intensity versus distance perturbations, and do these responses align with theoretical predictions?
-    \item What evidence do perturbation responses provide about the underlying feature representations learned by neural networks?
-    \item How can insights from distance-based interpretation improve neural network design and training?
-\end{enumerate}
-
-The implications of validating this theoretical framework extend beyond interpretation. Understanding neurons as distance metrics could inform better initialization strategies, suggest new architectures optimized for distance-based learning, and provide principled approaches to feature visualization and network analysis. Additionally, this perspective offers a bridge between neural networks and classical statistical methods, potentially enabling new hybrid approaches that combine the strengths of both paradigms.
-
-This paper makes the following contributions:
-\begin{itemize}
-    \item Provides comprehensive empirical validation of the theoretical connection between neural networks and Mahalanobis distance
-    \item Demonstrates distinctive perturbation response patterns that support interpretation of neurons as distance metrics
-    \item Offers practical insights for neural network design based on empirical findings
-    \item Establishes a methodology for analyzing neural networks through systematic perturbation analysis
-\end{itemize}
-
-The remainder of this paper is organized as follows. Section 2 details our experimental design, including model architectures and perturbation methods. Section 3 presents our empirical results and analysis. Section 4 discusses the implications of our findings and suggests practical applications. Finally, Section 5 concludes with a summary of insights and directions for future research.
+Our results demonstrate that networks with both ReLU and Absolute Value activations show strong sensitivity to distance-based perturbations while maintaining robust performance under intensity scaling, supporting the hypothesis that they primarily learn distance-based features. These findings not only validate our theoretical framework but also suggest new approaches for understanding and improving neural network architectures.

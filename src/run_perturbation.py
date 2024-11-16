@@ -59,11 +59,23 @@ def get_activation_range(model):
     model.eval()
     return min_vals, max_vals
 
-def create_intensity_perturbation(min_vals, max_vals, scale):
+def create_intensity_scale_perturbation(min_vals, max_vals, scale):
     # For scaling, scale is the direct multiplier
-    a = torch.ones_like(max_vals) * scale
+    s = torch.ones_like(max_vals) * scale
+    t = torch.zeros_like(max_vals)
+    clip = torch.full_like(max_vals, float('inf'))
+    return s, t, clip
+
+def create_intensity_clip_perturbation(min_vals, max_vals, clip_factor):
+    # Keep original scale and no offset
+    a = torch.ones_like(max_vals)
     b = torch.zeros_like(max_vals)
-    return a, b
+    
+    # Calculate clip threshold for each node based on its range
+    ranges = max_vals - min_vals
+    clip = min_vals + ranges * clip_factor
+    
+    return a, b, clip
 
 def create_distance_perturbation(min_vals, max_vals, percent):
     # Calculate the range for each node
@@ -77,24 +89,48 @@ def create_distance_perturbation(min_vals, max_vals, percent):
     shift = ranges * percent
     
     # Calculate a to maintain max value
-    a = (max_vals - shift) / max_vals
+    s = (max_vals - shift) / max_vals
     
     # b is simply the shift amount
-    b = shift
+    t = shift
     
-    return a, b
+    clip = torch.full_like(max_vals, float('inf'))
+    return s, t, clip
 
-def test_intensity_perturbation(model, min_vals, max_vals, scale_percent):
+def test_intensity_scale_perturbation(model, min_vals, max_vals, scale_percent):
     """Test model performance with intensity perturbation (scaling)"""
     # Load the model and move to GPU
     model.eval()
         
     # Create perturbation parameters
-    a, b = create_intensity_perturbation(min_vals, max_vals, scale_percent)
+    s, t, clip = create_intensity_scale_perturbation(min_vals, max_vals, scale_percent)
     
     # Apply perturbation parameters
-    model.perturb_layer.a.data = a
-    model.perturb_layer.b.data = b
+    model.perturb_layer.s.data = s
+    model.perturb_layer.t.data = t
+    model.perturb_layer.clip.data = clip  
+    
+    # Evaluate model
+    with torch.no_grad():
+        outputs = model(X_train)
+        predictions = torch.argmax(outputs, dim=1)
+        accuracy = (predictions == y_train).float().mean().item() * 100
+        
+    model.eval()
+    return accuracy
+
+def test_intensity_clip_perturbation(model, min_vals, max_vals, scale_percent):
+    """Test model performance with intensity perturbation (scaling)"""
+    # Load the model and move to GPU
+    model.eval()
+        
+    # Create perturbation parameters
+    s, t, clip = create_intensity_clip_perturbation(min_vals, max_vals, scale_percent)
+    
+    # Apply perturbation parameters
+    model.perturb_layer.s.data = s
+    model.perturb_layer.t.data = t
+    model.perturb_layer.clip.data = clip  
     
     # Evaluate model
     with torch.no_grad():
@@ -111,11 +147,12 @@ def test_distance_perturbation(model, min_vals, max_vals, offset_percent):
     model.eval()
         
     # Create perturbation parameters
-    a, b = create_distance_perturbation(min_vals, max_vals, offset_percent)
+    s, t, clip = create_distance_perturbation(min_vals, max_vals, offset_percent)
     
     # Apply perturbation parameters
-    model.perturb_layer.a.data = a
-    model.perturb_layer.b.data = b
+    model.perturb_layer.s.data = s
+    model.perturb_layer.t.data = t
+    model.perturb_layer.clip.data = clip
     
     # Evaluate model
     with torch.no_grad():
@@ -123,7 +160,7 @@ def test_distance_perturbation(model, min_vals, max_vals, offset_percent):
         predictions = torch.argmax(outputs, dim=1)
         accuracy = (predictions == y_train).float().mean().item() * 100
     
-    # print(f"distance {offset_percent} {accuracy} {a} {b}")
+    # print(f"distance {offset_percent} {accuracy} {s} {t}")
     model.eval()
     return accuracy
 
@@ -174,7 +211,9 @@ def main():
     
             run_results = {
                 'scale_values': scale_values,
-                'scale_accuracies': [test_intensity_perturbation(model, min_vals, max_vals, scale) for scale in scale_values],
+                'scale_accuracies': [test_intensity_scale_perturbation(model, min_vals, max_vals, scale) for scale in scale_values],
+                'clip_values': scale_values,
+                'clip_accuracies': [test_intensity_clip_perturbation(model, min_vals, max_vals, scale) for scale in scale_values],
                 'offset_values': offset_values,
                 'offset_accuracies': [test_distance_perturbation(model, min_vals, max_vals, offset) for offset in offset_values]
             }
