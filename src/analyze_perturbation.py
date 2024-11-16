@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import seaborn
+from matplotlib.ticker import FuncFormatter
 
 def debug_raw_data(results):
     """Print raw data for first few runs of each model"""
@@ -70,6 +71,9 @@ def load_and_process_results(filepath):
     
     return stats_dict
 
+def percentage(x, pos):
+    return f"{x*100:.0f}%"
+
 def plot_results(stats_dict, publication_ready=False):
     """Create plots with confidence intervals"""
     if publication_ready:
@@ -92,11 +96,13 @@ def plot_results(stats_dict, publication_ready=False):
     
     # Plot scaling and clipping results
     ax1.set_title('(a) Intensity Perturbation')
-    ax1.set_xlabel('Scale/Clip Factor')
+    ax1.set_xlabel('Scale/Clip')
     ax1.set_ylabel('Accuracy (%)')
-    ax1.set_xscale('log')
+    # ax1.set_xscale('log')
+    ax1.set_xlim(0, 1.2)
     ax1.set_ylim(0, 102)
-    
+    ax1.xaxis.set_major_formatter(FuncFormatter(percentage))
+
     colors = {'PerturbationAbs': '#1f77b4', 'PerturbationReLU': '#d62728'}
     
     for model_name in ['PerturbationAbs', 'PerturbationReLU']:
@@ -105,6 +111,7 @@ def plot_results(stats_dict, publication_ready=False):
         
         # Plot scaling results
         stats = stats_dict[model_name]['scale']
+        print(stats['x'])
         ax1.plot(stats['x'], stats['mean'], 
                 color=color, 
                 linestyle='-',
@@ -131,9 +138,10 @@ def plot_results(stats_dict, publication_ready=False):
     
     # Plot offset results
     ax2.set_title('(b) Distance Perturbation')
-    ax2.set_xlabel('Offset Percent')
+    ax2.set_xlabel('Offset')
     ax2.set_ylabel('Accuracy (%)')
     ax2.set_ylim(0, 102)
+    ax2.xaxis.set_major_formatter(FuncFormatter(percentage))
 
     for model_name in ['PerturbationAbs', 'PerturbationReLU']:
         color = colors[model_name]
@@ -174,33 +182,35 @@ def perform_ttests(filepath):
         print("Scale  |  T-statistic  |  P-value  | Mean Accuracy")
         print("-" * 55)
         
-        scale_points = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 2.0]
+        scale_points = [0.01, 0.05, 0.10, 0.25, 0.50, 1.00, 10.00]
         scale_x = model_runs[0]['scale_values']
         for scale in scale_points:
             idx = np.abs(scale_x - scale).argmin()
             scale_accs = [run['scale_accuracies'][idx] for run in model_runs]
             t_stat, p_val = stats.ttest_rel(baseline_scale, scale_accs)
             mean_acc = np.mean(scale_accs)
-            print(f"{scale:5.1f}  |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
+            print(f"{scale:5.2f}  |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
         
         print("\nIntensity (Clip) Test:")
         print("Clip   |  T-statistic  |  P-value  | Mean Accuracy")
         print("-" * 55)
         
-        clip_points = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 2.0]
+        clip_points = [0.01, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.75, 1.00]
         clip_x = model_runs[0]['clip_values']
         for clip in clip_points:
             idx = np.abs(clip_x - clip).argmin()
             clip_accs = [run['clip_accuracies'][idx] for run in model_runs]
             t_stat, p_val = stats.ttest_rel(baseline_clip, clip_accs)
             mean_acc = np.mean(clip_accs)
-            print(f"{clip:5.1f}  |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
+            print(f"{clip:5.2f}  |  {t_stat:11.3f}  |  {p_val:8.3e}  |  {mean_acc:6.2f}%")
         
         print("\nDistance (Offset) Test:")
         print("Offset |  T-statistic  |  P-value  | Mean Accuracy")
         print("-" * 55)
         
-        offset_points = [-0.8, -0.4, -0.2, -0.1, -0.04, -0.03, -0.02, -0.01, 0.0, 0.01, 0.02, 0.03, 0.04, 0.1, 0.2, 0.4, 0.8]
+        offset_points = [-2.00, -1.00, -0.75, -0.50, -0.25, -0.10, 
+                         -0.05, -0.04, -0.03, -0.02, -0.01, 0.00, 0.01, 0.02, 0.03, 0.04, 0.05, 
+                         0.10, 0.25, 0.50, 0.75, 1.00, 2.00]
         offset_x = model_runs[0]['offset_values']
         for offset in offset_points:
             idx = np.abs(offset_x - offset).argmin()

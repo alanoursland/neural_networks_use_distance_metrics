@@ -1,11 +1,10 @@
-\appendix
-\section{Extended Statistical Results}
+\section{Statistical Tables}
 
 \subsection{Baseline Performance}
 
 The following table presents the detailed performance metrics for both architectures across 20 training runs:
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrr}
 \hline
@@ -16,120 +15,86 @@ ReLU & 98.33 $\pm$ 0.15 & 95.61 $\pm$ 0.14 & 0.0610 $\pm$ 0.0044 \\
 \hline
 \end{tabular}
 \caption{Baseline model performance averaged across 20 training runs (mean $\pm$ standard deviation).}
-\label{tab:app_b_baseline}
+\label{tab:stat_baseline}
 \end{table}
 
 \subsection{Intensity Scale Perturbation Results}
 
 Results for intensity scaling perturbations compared to baseline performance:
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{r|rrr|rrr}
 Scale & \multicolumn{3}{|c|}{Abs} & \multicolumn{3}{|c}{ReLU} \\
 Change & Acc (\%) & T-stat & P-value & Acc (\%) & T-stat & P-value \\
 \hline
-1\% & 94.76 & 16.616 & 8.987e-13 & 75.33 & 15.589 & 2.792e-12 \\
-5\% & 99.86 & 6.386 & 3.994e-06 & 97.33 & 11.867 & 3.128e-10 \\
-10\% & 99.98 & 5.460 & 2.879e-05 & 98.10 & 10.374 & 2.906e-09 \\
-25\% & 99.98 & 1.073 & 2.968e-01 & 98.31 & 4.671 & 1.665e-04 \\
-50\% & 99.99 & -2.031 & 5.645e-02 & 98.33 & -3.689 & 1.558e-03 \\
-Baseline & 99.99 & -1.313 & 2.047e-01 & 98.33 & -3.644 & 1.728e-03 \\
-1000\% & 99.99 & -1.584 & 1.296e-01 & 98.33 & -3.178 & 4.948e-03 \\
+1\% & 94.76 & 16.6 & 9.0e-13 & 75.33 & 15.6 & 2.8e-12 \\
+5\% & 99.86 & 6.4 & 4.0e-06 & 97.33 & 11.9 & 3.1e-10 \\
+10\% & 99.98 & 5.5 & 2.9e-05 & 98.10 & 10.4 & 2.9e-09 \\
+25\% & 99.98 & 1.1 & 3.0e-01 & 98.31 & 4.7 & 1.7e-04 \\
+50\% & 99.99 & -2.0 & 5.6e-02 & 98.33 & -3.7 & 1.6e-03 \\
+Baseline & 99.99 & -1.3 & 2.0e-01 & 98.33 & -3.6 & 1.7e-03 \\
+1000\% & 99.99 & -1.6 & 1.3e-01 & 98.33 & -3.2 & 4.9e-03 \\
 \end{tabular}
 \caption{Effects of intensity scaling on model accuracy. Scale values are shown as percentages of the original range.}
-\label{tab:app_b_scale}
+\label{tab:stat_scale}
 \end{table}
 
 \subsection{Intensity Cutoff Results}
 
 Results for intensity cutoff perturbations compared to baseline performance:
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{r|rrr|rrr}
 Cutoff & \multicolumn{3}{|c|}{Abs} & \multicolumn{3}{|c}{ReLU} \\
 Change & Acc (\%) & T-stat & P-value & Acc (\%) & T-stat & P-value \\
 \hline
-1\% & 52.90 & 28.114 & 6.057e-17 & 75.93 & 36.578 & 4.450e-19 \\
-5\% & 60.13 & 24.755 & 6.390e-16 & 82.57 & 27.845 & 7.241e-17 \\
-10\% & 71.05 & 21.910 & 6.030e-15 & 87.56 & 22.964 & 2.547e-15 \\
-20\% & 88.55 & 20.972 & 1.342e-14 & 93.84 & 20.603 & 1.855e-14 \\
-30\% & 96.11 & 24.487 & 7.811e-16 & 96.67 & 18.620 & 1.163e-13 \\
-40\% & 98.70 & -25.278 & 4.344e-16 & 97.74 & -23.404 & 1.796e-15 \\
-50\% & 99.60 & -26.666 & 1.616e-16 & 98.14 & -26.810 & 1.462e-16 \\
-75\% & 99.98 & -26.489 & 1.827e-16 & 98.33 & -27.812 & 7.403e-17 \\
-Baseline & 99.99 & -26.494 & 1.820e-16 & 98.33 & -28.052 & 6.307e-17 \\
+1\% & 52.90 & 28.1 & 6.1e-17 & 75.93 & 36.6 & 4.5e-19 \\
+5\% & 60.13 & 24.8 & 6.4e-16 & 82.57 & 27.8 & 7.2e-17 \\
+10\% & 71.05 & 21.9 & 6.0e-15 & 87.56 & 23.0 & 2.5e-15 \\
+20\% & 88.55 & 21.0 & 1.3e-14 & 93.84 & 20.6 & 1.9e-14 \\
+30\% & 96.11 & 24.5 & 7.8e-16 & 96.67 & 18.6 & 1.2e-13 \\
+40\% & 98.70 & -25.3 & 4.3e-16 & 97.74 & -23.4 & 1.8e-15 \\
+50\% & 99.60 & -26.7 & 1.6e-16 & 98.14 & -26.8 & 1.5e-16 \\
+75\% & 99.98 & -26.5 & 1.8e-16 & 98.33 & -27.8 & 7.4e-17 \\
+Baseline & 99.99 & -26.5 & 1.8e-16 & 98.33 & -28.1 & 6.3e-17 \\
 \end{tabular}
 \caption{Effects of intensity cutoff on model accuracy. Cutoff values are shown as percentages of the maximum activation.}
-\label{tab:app_b_cutoff}
+\label{tab:stat_cutoff}
 \end{table}
 
 \subsection{Distance Offset Perturbation Results}
 
 Results for distance perturbations (offset) compared to baseline performance:
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{r|rrr|rrr}
 Offset & \multicolumn{3}{|c|}{Abs} & \multicolumn{3}{|c}{ReLU} \\
 Change & Acc (\%) & T-stat & P-value & Acc (\%) & T-stat & P-value \\
 \hline
--200\% & 11.04 & 49.597 & 1.449e-21 & 18.77 & 211.332 & 1.694e-33 \\
--100\% & 12.60 & 48.824 & 1.949e-21 & 41.68 & 78.929 & 2.216e-25 \\
--75\% & 14.79 & 47.058 & 3.903e-21 & 55.16 & 60.174 & 3.765e-23 \\
--50\% & 21.78 & 43.657 & 1.604e-20 & 72.90 & 43.381 & 1.806e-20 \\
--25\% & 49.03 & 32.047 & 5.284e-18 & 90.24 & 33.099 & 2.890e-18 \\
--10\% & 86.25 & -31.506 & 7.260e-18 & 96.55 & -36.744 & 4.088e-19 \\
--5\% & 95.49 & -39.490 & 1.057e-19 & 97.78 & -38.817 & 1.460e-19 \\
--3\% & 97.86 & -41.301 & 4.551e-20 & 98.13 & -39.320 & 1.147e-19 \\
--2\% & 98.95 & -42.068 & 3.221e-20 & 98.24 & -39.373 & 1.118e-19 \\
--1\% & 99.82 & -42.731 & 2.400e-20 & 98.31 & -39.848 & 8.924e-20 \\
-Baseline & 99.99 & -42.792 & 2.336e-20 & 98.33 & -40.007 & 8.280e-20 \\
-+1\% & 99.81 & -42.727 & 2.405e-20 & 98.26 & -39.645 & 9.821e-20 \\
-+2\% & 98.85 & -42.017 & 3.295e-20 & 98.14 & -39.311 & 1.152e-19 \\
-+3\% & 97.70 & -41.019 & 5.179e-20 & 97.99 & -38.523 & 1.684e-19 \\
-+5\% & 95.00 & -38.346 & 1.836e-19 & 97.62 & -36.557 & 4.500e-19 \\
-+10\% & 81.40 & -19.541 & 4.856e-14 & 96.31 & -28.323 & 5.277e-17 \\
-+25\% & 23.43 & 15.044 & 5.226e-12 & 81.60 & 14.675 & 8.091e-12 \\
-+50\% & 11.14 & 29.690 & 2.196e-17 & 32.54 & 64.280 & 1.080e-23 \\
-+75\% & 9.81 & 42.812 & 2.316e-20 & 13.94 & 61.122 & 2.801e-23 \\
-+100\% & 9.78 & 44.640 & 1.054e-20 & 9.41 & 493.813 & 1.687e-40 \\
+-200\% & 11.04 & 49.6 & 1.4e-21 & 18.77 & 211.3 & 1.7e-33 \\
+-100\% & 12.60 & 48.8 & 1.9e-21 & 41.68 & 78.9 & 2.2e-25 \\
+-75\% & 14.79 & 47.1 & 3.9e-21 & 55.16 & 60.2 & 3.8e-23 \\
+-50\% & 21.78 & 43.7 & 1.6e-20 & 72.90 & 43.4 & 1.8e-20 \\
+-25\% & 49.03 & 32.0 & 5.3e-18 & 90.24 & 33.1 & 2.9e-18 \\
+-10\% & 86.25 & -31.5 & 7.3e-18 & 96.55 & -36.7 & 4.1e-19 \\
+-5\% & 95.49 & -39.5 & 1.1e-19 & 97.78 & -38.8 & 1.5e-19 \\
+-3\% & 97.86 & -41.3 & 4.6e-20 & 98.13 & -39.3 & 1.1e-19 \\
+-2\% & 98.95 & -42.1 & 3.2e-20 & 98.24 & -39.4 & 1.1e-19 \\
+-1\% & 99.82 & -42.7 & 2.4e-20 & 98.31 & -39.8 & 8.9e-20 \\
+Baseline & 99.99 & -42.8 & 2.3e-20 & 98.33 & -40.0 & 8.3e-20 \\
++1\% & 99.81 & -42.7 & 2.4e-20 & 98.26 & -39.6 & 9.8e-20 \\
++2\% & 98.85 & -42.0 & 3.3e-20 & 98.14 & -39.3 & 1.2e-19 \\
++3\% & 97.70 & -41.0 & 5.2e-20 & 97.99 & -38.5 & 1.7e-19 \\
++5\% & 95.00 & -38.3 & 1.8e-19 & 97.62 & -36.6 & 4.5e-19 \\
++10\% & 81.40 & -19.5 & 4.9e-14 & 96.31 & -28.3 & 5.3e-17 \\
++25\% & 23.43 & 15.0 & 5.2e-12 & 81.60 & 14.7 & 8.1e-12 \\
++50\% & 11.14 & 29.7 & 2.2e-17 & 32.54 & 64.3 & 1.1e-23 \\
++75\% & 9.81 & 42.8 & 2.3e-20 & 13.94 & 61.1 & 2.8e-23 \\
++100\% & 9.78 & 44.6 & 1.1e-20 & 9.41 & 493.8 & 1.7e-40 \\
 \end{tabular}
 \caption{Effects of distance offset on model accuracy. Offset values are shown as percentages of the activation range.}
-\label{tab:app_b_offset}
+\label{tab:stat_offset}
 \end{table}
-
-\subsection{Statistical Significance Analysis}
-
-The expanded results reveal several key patterns:
-
-\begin{enumerate}
-    \item \textbf{Scale Invariance}:
-    \begin{itemize}
-        \item Abs network maintains $>$99.8\% accuracy above 5\% scaling
-        \item ReLU network shows degradation below 5\% but stabilizes above 98\% for higher scales
-        \item Neither network shows statistically significant changes (p $>$ 0.01) above 50\% scaling
-    \end{itemize}
-
-    \item \textbf{Cutoff Sensitivity}:
-    \begin{itemize}
-        \item Both networks show significant degradation with low cutoff values ($<$30\%)
-        \item Abs network recovers faster, reaching $>$99\% accuracy at 50\% cutoff
-        \item ReLU network requires 75\% cutoff to approach baseline performance
-    \end{itemize}
-
-    \item \textbf{Critical Offset Thresholds}:
-    \begin{itemize}
-        \item Abs network: Sharp accuracy drops outside $\pm$1\% range
-        \item ReLU network: Gradual degradation, with significant drops (p $<$ 1e-17) beyond $\pm$10\%
-        \item Both networks show asymmetric response to positive vs negative offsets
-    \end{itemize}
-
-    \item \textbf{Long-range Behavior}:
-    \begin{itemize}
-        \item Large positive offsets ($>$75\%) reduce both networks to near-random performance ($\sim$10\%)
-        \item Large negative offsets affect Abs more severely than ReLU
-        \item ReLU maintains better performance in the moderate offset range ($\pm$50\%)
-    \end{itemize}
-\end{enumerate}
