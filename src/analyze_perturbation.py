@@ -96,7 +96,7 @@ def plot_results(stats_dict, publication_ready=False):
     
     # Plot scaling and clipping results
     ax1.set_title('(a) Intensity Perturbation')
-    ax1.set_xlabel('Scale/Clip')
+    ax1.set_xlabel('Scale/Clip (% of activation range)')
     ax1.set_ylabel('Accuracy (%)')
     # ax1.set_xscale('log')
     ax1.set_xlim(0, 1.2)
@@ -138,7 +138,7 @@ def plot_results(stats_dict, publication_ready=False):
     
     # Plot offset results
     ax2.set_title('(b) Distance Perturbation')
-    ax2.set_xlabel('Offset')
+    ax2.set_xlabel('Offset (% of activation range)')
     ax2.set_ylabel('Accuracy (%)')
     ax2.set_ylim(0, 102)
     ax2.xaxis.set_major_formatter(FuncFormatter(percentage))
@@ -150,7 +150,7 @@ def plot_results(stats_dict, publication_ready=False):
         ax2.plot(stats['x'], stats['mean'], 
                 color=color, 
                 linestyle='-',
-                label='Abs' if 'Abs' in model_name else 'ReLU')
+                label='Abs Offset' if 'Abs' in model_name else 'ReLU Offset')
         ax2.fill_between(stats['x'], 
                         stats['ci'][0], 
                         stats['ci'][1],
