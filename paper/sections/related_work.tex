@@ -1,1 +1,21 @@
-\section{Related Work}
+\section{Prior Work}
+
+The interpretation of activations in neural networks has a rich history, intertwined with the evolution of these models themselves. From the earliest days, the notion that larger activations signify stronger feature representations has been a recurring theme, shaping how we understand and analyze these complex systems. We refer to this interpretation as an "intensity metric".
+
+\subsection{The Genesis of "Larger is Stronger"}
+
+The seeds of this interpretation can be traced back to the foundational work of McCulloch and Pitts \cite{mcculloch1943logical}, who introduced the concept of artificial neurons with a threshold for activation. While not a learning model, their work laid the groundwork for associating higher activation with a stronger response to a stimulus. This notion was further solidified by Rosenblatt's perceptron \cite{rosenblatt1958perceptron}, which explicitly used "1" to represent the positive, feature-detecting state, linking larger activation with the presence of a feature.
+
+The development of multilayer perceptrons (MLPs) and the backpropagation algorithm \cite{rumelhart1986learning} enabled the training of deeper networks with continuous activation functions. While this opened up new possibilities for representation learning, the interpretation of activations often still focused on larger values as being more salient or important \cite{erhan2009visualizing, lecun1998gradient}. This was reflected in visualizations of activations and analyses of feature maps, where stronger activations were often highlighted.
+
+\subsection{Reinforcement through Deep Learning}
+
+The advent of deep learning further reinforced the "larger is stronger" interpretation. The widespread adoption of ReLU and its variants \cite{nair2010rectified, glorot2011deep, krizhevsky2012imagenet} implicitly emphasized the importance of large, positive activations due to their sparsity-inducing nature. Visualization techniques, such as saliency maps \cite{simonyan2013deep} and Class Activation Mapping (CAM) \cite{zhou2016learning}, often focused on highlighting regions with high activations, further promoting this view.  Similarly, attention mechanisms, which assign weights to different parts of the input, often rely on the magnitude of these weights as indicators of importance \cite{bahdanau2014neural, vaswani2017attention}, reinforcing the focus on larger values.
+
+\subsection{Challenges and Alternative Perspectives}
+
+Despite the prevalence of the "larger is stronger" interpretation, recent work has highlighted some limitations and offered alternative perspectives. The growing interest in sparsity and efficient neural networks \cite{han2015learning, wang2020dynamic} raises questions about the necessity of large activations for all representations. The discovery of adversarial examples \cite{goodfellow2014explaining, madry2017towards}, where small input perturbations can cause significant changes in activations and predictions, challenges the robustness of relying solely on activation magnitude for interpretation.
+
+Furthermore, the success of distance-based methods like Radial Basis Function (RBF) networks \cite{broomhead1988radial} and Siamese networks \cite{bromley1994signature, schroff2015facenet} suggests that focusing solely on activation magnitude might overlook important relational information encoded in the activation space. These models explicitly utilize distance computations for tasks like classification and similarity learning, demonstrating the effectiveness of considering distances between activations rather than just their absolute values.
+
+This historical overview highlights the enduring influence of the "larger is stronger" interpretation in neural network analysis. However, it also reveals the emergence of alternative perspectives, including those based on sparsity, robustness, and distance metrics. Our work builds upon these alternative perspectives, aiming to provide a more nuanced understanding of how neural networks represent and process information.
