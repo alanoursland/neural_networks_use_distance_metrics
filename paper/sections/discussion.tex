@@ -1,8 +1,6 @@
 \section{Discussion}
 
-We explore how ReLU and Abs activations represent features within a distance metric interpretation. Figure~\ref{fig:activation_demo} illustrates the key differences in how these activation functions process information. In the pre-activation space (Figures~\ref{fig:relu_pre} and~\ref{fig:abs_pre}), both models can learn similar linear projections of input features. ReLU is driven to minimize the active feature $\left\{ c \right\}$ and ends up being positioned on the positive edge of the distribution. Abs positions the decision boundary through the mean, or possibly the median, of the data. After activation, ReLU sets all features on its dark side to the minimum possible distance: zero. Abs folds the space, moving all distributions on the negative side to the positive side. The ReLU activated node, selects for features $\left\{ a, b, c \right\}$. The folding operation of the Abs activated feature results in $\left\{ c \right\}$ being the sole feature with the smallest activation value.
-
-\begin{figure}[t]
+\begin{figure}[ht]
     \centering
 
     \begin{subfigure}[b]{0.49\textwidth}
@@ -37,108 +35,69 @@ We explore how ReLU and Abs activations represent features within a distance met
     \label{fig:activation_demo}
 \end{figure}
 
-\subsection{Intensity Perturbations}
-
-\begin{figure}[t]
-    \centering
-
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{images/tbd}
-        \caption{ReLU Scaling Down 0.5x}
-        \label{fig:relu_scale_down}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{images/tbd}
-        \caption{Abs Scaling Down 0.5x}
-        \label{fig:relu_scale_down}
-    \end{subfigure}
-
-    \begin{subfigure}[b]{0.49\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{images/tbd}
-    \caption{ReLU Scaling Up 2x}
-    \label{fig:relu_scale_up}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{images/tbd}
-    \caption{Abs Scaling Up 2x}
-    \label{fig:abs_scale_up}
-    \end{subfigure}
-
-    \caption{Effects of scaling on feature representation. The top row shows scaling down (0.5x) and the bottom row shows scaling up (2.0x) for both ReLU and Abs activated nodes.}
-    \label{fig:scaling_demo}
-\end{figure}
-
-We extend our discussion with Figure~\ref{fig:scaling_demo} to demonstrate how scaling does not affect distance feature selection, but could affect intensity feature selection. All of the ReLU features are still zero. The minimum Abs feature is still the minimum. It is unclear how intensity features would be interpreted. If the following layers look for features in a band of activation values, they will find different features. CrossEntopyLoss does normalize everything at the output. If that property passes through to the hidden layer, I supposed the relative values across wouldn't change things. This needs more work. I need to see if the scale values are different for different nodes. TODO!!!
-
-It is really difficult to explain why something that is poorly defined doesn't break.
+We explore how ReLU and Abs activations represent features within a distance metric interpretation. Figure~\ref{fig:activation_demo} illustrates the key differences in how these activation functions process information. In the pre-activation space (Figures~\ref{fig:relu_pre} and~\ref{fig:abs_pre}), both models can learn similar linear projections of input features. ReLU is driven to minimize the active feature $\left\{ c \right\}$ and ends up being positioned on the positive edge of the distribution. Abs positions the decision boundary through the mean, or possibly the median, of the data. After activation, ReLU sets all features on its dark side to the minimum possible distance: zero. Abs folds the space, moving all distributions on the negative side to the positive side. The ReLU activated node, selects for features $\left\{ a, b, c \right\}$. The folding operation of the Abs activated feature results in $\left\{ c \right\}$ being the sole feature with the smallest activation value.
 
 \subsection{Offset Perturbations}
 
-\begin{figure}[t]
+\begin{figure}[ht]
     \centering
 
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/tbd}
-        \caption{ReLU Offset Negative}
+        \includegraphics[width=\textwidth]{images/offset_relu_neg}
+        \caption{ReLU Negative Offset}
         \label{fig:relu_offset_down}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/tbd}
-        \caption{Abs Offset Negative}
+        \includegraphics[width=\textwidth]{images/offset_abs_neg}
+        \caption{Abs Negative Offset}
         \label{fig:abs_offset_down}
     \end{subfigure}
 
     \begin{subfigure}[b]{0.49\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{images/tbd}
-    \caption{ReLU Offset Positive}
-    \label{fig:relu_offset_up}
+        \centering
+        \includegraphics[width=\textwidth]{images/offset_relu_pos}
+        \caption{ReLU Positive Offset}
+        \label{fig:relu_offset_up}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{images/tbd}
-    \caption{Abs Offset Positive}
-    \label{fig:abs_offset_up}
+        \centering
+        \includegraphics[width=\textwidth]{images/offset_abs_pos}
+        \caption{Abs Positive Offset}
+        \label{fig:abs_offset_up}
     \end{subfigure}
 
     \caption{Effects of decision boundary offsets on feature representation. The top row shows negative offsets and the bottom row shows positive offsets for both ReLU and Abs activated nodes.}
     \label{fig:offset_demo}
 \end{figure}
 
-Figure~\ref{fig:offset_demo} demonstrates how offset perturbations affect feature selection. ReLU either adds or removes features to its accepted feature set. Figure a shows removes $c$ from the accept set leaving only $\left\{ a, b \right\}$. Figure c, shows ReLU accepting $\left\{ a, b, c, d \right\}$. Offset perturbations in ReLU result in incremental changes to the accept set and we can see that with the gradual performance degradation in Figure~\ref{fig:perturbation_analysis}. Abs, however, selects a single feature. Under negative offset, it shifts to select feature $\{b\}$ instead of its trained feature $\{c\}$. Under positive offset, features $\{c,d\}$ become the minimum values but neither aligns with the decision boundary and it could be interpreted as an empty set. These complete changes in feature selection explain the dramatic performance impact even with small perturbations.
+Figure~\ref{fig:offset_demo} illustrates how offset perturbations affect feature selection for both ReLU and absolute value activation functions. With ReLU, offset perturbations modify the set of accepted features. The negative offset (Figure~\ref{fig:offset_demo}\subref{fig:relu_offset_down}) removes feature $c$ from the accepted set, leaving only $\{a, b\}$, while, with this distribution, a positive offset doesn't result in a chage (Figure~\ref{fig:offset_demo}\subref{fig:relu_offset_up}). 
 
-The analysis of intensity features has a similar problem as the scale perturbations. TODO!!!
+In contrast, absolute value activation selects a single feature. A negative offset shifts the selection to feature $b$ instead of the originally trained feature $c$ (Figure~\ref{fig:offset_demo}\subref{fig:abs_offset_down}). A positive offset results in features $\{c, d\}$ having the minimum values (Figure~\ref{fig:offset_demo}\subref{fig:abs_offset_up}). However, neither of these aligns with the decision boundary, effectively resulting in an empty set.
 
-\subsection(ReLU is More Resliliant to Perturbation)
+These complete shifts in feature selection for the absolute value activation, compared to the incremental changes with ReLU, explain the more dramatic performance impact observed in Figure~\ref{fig:perturbation_analysis}, even with small offset perturbations.
 
-ReLU is forced to select multiple features at once. That feature mixture allows for a graceful degradation of performance during perturbation. Abs selects a single feature and has more of an "all or nothing" failure response.
+\subsection{Scale Perturbations}
 
-\subsection(Cutoff Convenience)
+Analyzing the impact of scaling on intensity features presents a challenge due to the lack of a precise definition for what constitutes an intensity feature.  Our experiments demonstrated that scaling activations, which directly modifies their magnitude, did not significantly affect the performance of either ReLU or absolute value networks.  This invariance is unexpected if we assume that larger activations simply indicate stronger feature presence.
 
-Cutoff degredation begins picking up speed below 50\% of the output range. I find it a little too convenient that the top 50th percetile might be intensity features and the bottom 50th percentile might be distance.
+One possible explanation for this invariance could be the normalization effect of the LogSoftmax operation within the cross-entropy loss function.  By renormalizing the output values, LogSoftmax might mitigate the impact of scaling on the relative differences between activations, potentially masking any effects on intensity-based features.  However, this does not explain the performance drop observed when activations are scaled down to the magnitudes associated with distance features, suggesting a complex interplay between scaling and the different types of learned features.
 
-\subsection(The Problem with Scaling)
+\subsection{Cutoff Perturbations}
 
-Discuss LogSoftmax and how it rescales everything and this motivated us to test with cutoff. But then why does it fail with very small scaling?
+To further investigate intensity features, we introduced a threshold cutoff perturbation.  This perturbation directly targets the ability to distinguish between features based on activation magnitude by clipping activations at a certain threshold.  Our results showed a minor performance degradation for cutoff thresholds up to the 50th percentile, followed by a more moderate degradation as the threshold is further reduced.  This suggests that the ability to distinguish between features with very high activations might not be critical for classification, especially if subsequent layers utilize sets of features rather than relying on individual activations, as indicated by our analysis of ReLU networks.
+
+While the results of our intensity perturbation experiments generally support our hypothesis that neural networks prioritize distance-based features, the evidence is not as conclusive as with the distance perturbation experiments.  Further investigation is needed to fully understand the role of intensity features and their interaction with different activation functions and network architectures.
 
 \subsection{The Problem with Intensity}
 
-Our perturbation analysis appears to support distance-based feature interpretation, but we must address a significant challenge: we cannot definitively disprove intensity-based interpretations because there is no consensus on what constitutes an intensity feature. The field has proposed multiple interpretations over decades of research, yet none has emerged as definitive. Is an intensity feature indicated by maximum activation? Does it require values within a specific range? Should we consider activation values relative to other nodes? Do we need to account for normalization effects between layers?
+Our perturbation analysis appears to support distance-based feature interpretation, but we must address a significant challenge: we cannot definitively disprove intensity-based interpretations due to the lack of a widely accepted definition of what constitutes an intensity feature.  This ambiguity has persisted despite decades of research, with various interpretations proposed but no consensus reached.  Some studies suggest that intensity features are indicated by maximum activation values, as seen in the foundational work on artificial neurons and perceptrons.  Others propose that intensity features might be defined by activation values falling within a specific range, aligning with the concept of confidence intervals or thresholds.
 
-The lack of a clear mathematical foundation for intensity metrics is particularly troubling. While distance metrics like Euclidean and Mahalanobis distances are well-defined statistical measures with clear linear formulations, we find no equivalent statistical measure for intensity that can be expressed through a linear equation. This absence is striking given the extensive study of linear methods in statistics. Without a well-defined statistical basis, intensity remains a nebulous concept, open to broad interpretations. This absence of a clear metric foundation makes it challenging to assess intensity features rigorously, raising the question of whether they are simply a subset of distance metrics in disguise.
+The absence of a clear mathematical foundation for intensity metrics further complicates the matter. Distance metrics like Euclidean and Mahalanobis distances have well-defined statistical measures with clear linear formulations.  However, we find no equivalent statistical measure for intensity that can be expressed through a linear equation.  This lack of a concrete mathematical basis makes it challenging to design experiments that definitively target and assess intensity features.
 
-Our scaling experiments highlight this definitional problem. If nodes measure intensity, how should scaling affect their measurements? One might expect that doubling a strong signal should make it stronger, yet our networks maintain consistent behavior under scaling. We could propose that relative values between nodes preserve the intensity information, but this begins to sound suspiciously like a distance metric in disguise.
+Our scaling experiments highlight this difficulty. One might expect that doubling a strong signal (high activation) should make it stronger, yet our networks maintain consistent behavior under scaling.  If we propose that relative values between nodes preserve intensity information, this begins to sound suspiciously like a distance metric.
 
 The distance features in the network are easily explained as a Mahalanobis distance of a principal component as described in \cite{oursland2024interpreting}. But what is the statistical meaning behind the intensity features? It implies a complement to the principal component, a principal disponent consisting of an antivector, antivalue and an unmean. I don't think that principal disponents are real. What looks like an intensity metric is really a distance metric that matches everything except the large value. Perhaps statistical network interpretation has stymied researchers because we have been looking for the mathematical equivalent of Big Foot or the Loch Ness Monster.
-
-More work is needed to understand the validity of intensity metrics.
