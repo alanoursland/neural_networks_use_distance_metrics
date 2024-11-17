@@ -1,22 +1,16 @@
 \section{Results}
 
 \begin{figure}[h]
-    \centering
-    \includegraphics[width=\textwidth]{images/perturbation_analysis}
-    \caption{Effects of intensity scaling and distance offset perturbations on model accuracy. Shaded regions represent 95\% confidence intervals across 20 runs.}
-    \label{fig:perturbation_analysis}
-    \end{figure}
-\subsection{Statistical Analysis}   
+  \centering
+  \includegraphics[width=\textwidth]{images/perturbation_analysis}
+  \caption{Effects of intensity scaling and distance offset perturbations on model accuracy. Shaded regions represent 95\% confidence intervals across 20 runs.}
+  \label{fig:perturbation_analysis}
+\end{figure}
 
-Results of the experiment provide strong empirical support for our theory that the tested models primarily utilize distance metrics rather than intensity metrics.
+Our experiments provide strong empirical support for the theory that the tested models (Abs and ReLU) primarily utilize \textit{distance metrics}, rather than \textit{intensity metrics}, for classification. This means that the models rely on features residing near the decision boundaries for classification, rather than in regions with high activation magnitudes. As shown in Table~\ref{tab:stat_baseline}, both models achieved high accuracy on MNIST before perturbation testing. 
 
-Both models achieved strong classification performance on MNIST before perturbation testing, as shown in Table~\ref{tab:baseline}.
+Consistent with our theory, both models demonstrate strong invariance to intensity perturbations while exhibiting significant sensitivity to distance perturbations (Figure~\ref{fig:perturbation_analysis}).  Specifically, both models maintain their baseline accuracy (approximately 98\% for ReLU and 99\% for Abs) across a wide range of intensity scaling (from 10\% to 200\% of the original output range) and threshold clipping (from 50\% of the maximum activation and above). The minor fluctuations in accuracy observed within these ranges were small and not statistically significant (p > 0.05), as detailed in Table~\ref{tab:stat_scale} and Table~\ref{tab:stat_cutoff}. This robustness to intensity perturbations suggests that the models are not heavily reliant on the absolute magnitude of activations, or "intensity metrics," for classification.
 
-Both models demonstrate strong invariance to intensity perturbations while showing significant sensitivity to distance perturbations, supporting our theory. Figure~\ref{fig:perturbation_analysis} shows these effects across perturbation types.
+In contrast, both models exhibit a rapid decline in accuracy with relatively small distance offset perturbations. ReLU maintains its baseline accuracy over an offset range from -3\% to +2\% of the activation range, while the Abs model is even more sensitive, falling below 99\% accuracy outside of -1\% to +1\%. These findings, presented in detail in Table~\ref{tab:stat_offset}, underscore the importance of distance metrics, particularly the distances to decision boundaries, in the learned representations for accurate classification.
 
-Both models maintain their baseline accuracy (98\% for ReLU and 99\% for Abs) across both scaling (10\% to 200\% of output ranges) and threshold clipping (50\% and above). The minimal drop in performance is small and statisticaly significant (p < 0.01). 
-
-Both models lose accuracy quickly with small offset perturbations. ReLU maintains its baseline of 98\% over a -3\% to +2\% offset range. Abs is even more sensitive and falls below 99\% outside of -1\% to +1\%.
-
-Detailed result statistics, including t-test results are, available in Appendix~\ref{appendix:statistic_tables}.
-
+The high p-values associated with the intensity perturbations (see Appendix~\ref{appendix:statistic_tables}) further support our hypothesis. These non-significant results indicate that the observed variations in accuracy under intensity changes are likely attributable to random fluctuations rather than a systematic effect of the perturbations. This reinforces the notion that the models prioritize distance metrics over intensity metrics, focusing on the  features close to decision boundaries for classification.
