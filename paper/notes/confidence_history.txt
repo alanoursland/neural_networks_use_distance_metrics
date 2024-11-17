@@ -1,0 +1,59 @@
+That's not quite accurate. While confidence metrics have been a longstanding element in neural network interpretation, they haven't always been the dominant approach, especially not in the way we understand them today.
+
+Rosenblatt's Perceptron (1958):
+
+Focus on linear separability: The perceptron primarily aimed to find a linear decision boundary to separate classes.
+Output as a binary classifier: It produced a binary output (yes/no) rather than a graded confidence measure.
+Interpretation was more about the weights: Interpretation focused on the weights assigned to input features, indicating their importance in the decision.   
+Early Neural Networks:
+
+Limited expressiveness: Early networks were relatively shallow and had limited capacity to represent complex functions.
+Focus on symbolic AI: The dominant paradigm in AI at the time was symbolic AI, with less emphasis on statistical learning and confidence estimation.
+Rise of Modern Deep Learning:
+
+Increased complexity: Deeper and more complex networks emerged, capable of learning intricate patterns and producing graded outputs.
+Probabilistic interpretations: Softmax functions and probabilistic frameworks allowed for interpreting outputs as confidence scores.   
+Growing need for explainability: As deep learning became more powerful, the need to understand and interpret its decisions also grew, leading to increased interest in confidence metrics.
+Confidence Metrics Today:
+
+Diverse approaches: Various techniques are used to estimate confidence, including softmax outputs, calibration methods, ensemble methods, and Bayesian neural networks.
+Active research area: Research on confidence metrics is ongoing, with efforts to improve calibration, interpretability, and robustness.
+Therefore, it's more accurate to say that:
+
+Confidence metrics have become increasingly important in recent years with the rise of deep learning and the growing need for explainability.
+While Rosenblatt's perceptron laid the foundation for neural networks, the concept of confidence metrics as we understand them today evolved later.
+Interpretation in early neural networks was often more focused on weights and symbolic representations.
+It's crucial to consider the historical context and evolution of neural networks to understand the role and development of confidence metrics in the field.
+
+
+Sources and related content
+
+
+While pinpointing the single most influential paper for the widespread use of confidence metrics is difficult, here are some seminal works that significantly shaped the field:
+
+1. Platt Scaling (1999): "Probabilistic Outputs for Support Vector Machines and Comparisons to Regularized Likelihood Methods" by John Platt.   
+
+Introduced a method to transform SVM outputs into probability estimates, enabling the use of confidence metrics with these powerful classifiers.   
+Widely adopted for its simplicity and effectiveness, influencing the development of similar calibration techniques for other models.
+2. On Calibration of Modern Neural Networks (2017): by Chuan Guo, Geoff Pleiss, Yu Sun, Kilian Q. Weinberger   
+
+Systematically analyzed the overconfidence issue in modern neural networks, highlighting the need for calibration.   
+Popularized temperature scaling as a simple and effective calibration technique, further promoting the use of reliable confidence metrics.
+3. Deep Ensembles (2017): by Balaji Lakshminarayanan, Alexander Pritzel, Charles Blundell
+
+Demonstrated that combining predictions from multiple deep learning models (ensembles) can improve accuracy and provide more robust confidence estimates.   
+Influenced the development of ensemble methods for uncertainty quantification and confidence estimation in various applications.
+4.  Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning (2015): by Yarin Gal and Zoubin Ghahramani   
+
+Provided a theoretical framework for interpreting dropout regularization as a form of Bayesian inference.   
+Enabled the use of dropout to estimate model uncertainty and generate confidence intervals, promoting Bayesian approaches to confidence estimation.
+5.  Uncertainty in Deep Learning (2016):  (PhD Thesis) by Yarin Gal   
+
+A comprehensive work exploring various aspects of uncertainty in deep learning, including Bayesian neural networks and dropout-based methods.
+Significantly influenced research on uncertainty estimation and the use of confidence metrics in deep learning.   
+Beyond these specific papers:
+
+The development of softmax functions and probabilistic frameworks for neural networks laid the groundwork for interpreting outputs as confidence scores.   
+Research on Bayesian neural networks and approximate inference methods has contributed to more principled approaches to confidence estimation.
+The growing emphasis on explainable AI and trustworthy AI has further fueled interest in confidence metrics and their responsible use.
+These papers and broader research trends have collectively shaped the landscape of confidence metrics in neural networks, driving their widespread adoption and ongoing development.
