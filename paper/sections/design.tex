@@ -1,107 +1,31 @@
 \section{Experimental Design}
 
-To empirically investigate whether neural networks naturally learn distance-based features, we designed systematic perturbation experiments to differentiate between distance-based and intensity-based feature learning. This experimental framework directly compares these two interpretations by examining how learned features respond to specific modifications of their activation patterns. We hypothesize that perturbing the "true representation" will result in a drop in model accuracy.
+To empirically investigate whether neural networks naturally learn distance-based features, we designed systematic perturbation experiments to differentiate between distance-based and intensity-based feature learning. This experimental framework directly compares these two interpretations by examining how learned features respond to specific modifications of their activation patterns. We hypothesize that perturbing the "true representation" will result in a drop in model accuracy. 
 
-\subsection{Model Architecture}
+We train a basic feedforward model on the MNIST dataset to test our hypotheses. Our goal is not to optimize model accuracy but to obtain a robust model for perturbation analysis. The network processes MNIST digits through the following layers:
 
-We implemented a basic feedforward neural network architecture to test our hypotheses. The network processes MNIST digits through the following layers:
-\begin{enumerate}
-    \item Input layer (784 units, flattened $28 \times 28$ images),
-    \item Linear layer (128 units),
-    \item Perturbation layer,
-    \item Activation function,
-    \item Output layer (10 units).
-\end{enumerate}
-
-The perturbation layer is a custom module designed to control activation patterns using three fixed parameters: a multiplicative factor ($scale$), a translational offset ($offset$), and a clipping threshold ($clip$). During training, these parameters remain fixed ($scale = 1$, $offset = 0$, $clip = \infty$), ensuring the layer does not influence the network's learning. After training, these parameters are modified to probe the network's learned features. For each input $x$, the perturbation layer applies the following operation:
 \begin{equation}
-    \text{output} = \min(scale \cdot x + offset, \text{clip}),
+    x \rightarrow \text{Linear}(784) \rightarrow \text{Perturbation} \rightarrow \text{Activation (ReLU/Abs)} \rightarrow \text{Linear}(10) \rightarrow y
 \end{equation}
-where $scale$, $offset$, and $clip$ are adjustable for each unit, allowing controlled modifications of activation patterns.
+ 
+The perturbation layer is a custom module designed to control activation patterns using three fixed parameters: a multiplicative factor ($scale$), a translational offset ($offset$), and a clipping threshold ($clip$). During training, these parameters remain fixed ($scale = 1$, $offset = 0$, $clip = \infty$), ensuring the layer does not influence the network's learning. During pertubation testing, these parameters are modified to probe the network's learned features. For each input $x$, the perturbation layer applies the following operation: $\text{y} = \min(scale \cdot x + offset, \text{clip})$, where $scale$, $offset$, and $clip$ are adjustable for each unit.
 
-\subsection{Training Protocol}
-
-We trained the model on the MNIST dataset using standard classification procedures. To simplify the training process, we trained on the entire dataset rather than using minibatches. Each epoch corresponds to a single parameter update. To compensate for the lack of minibatches, the model was trained for 5000 epochs, approximately equivalent to the number of updates typically performed during minibatch training. This approach eliminates the need to tune batch size.
-
-Our goal is not to optimize model accuracy but to obtain a robust model for perturbation analysis. The training parameters are as follows:
-\begin{itemize}
-    \item Optimizer: Stochastic Gradient Descent (SGD) with a learning rate of 0.001,
-    \item Loss function: Cross-entropy loss,
-    \item Data normalization: $\mu = 0.1307$, $\sigma = 0.3081$.
-\end{itemize}
-
-To ensure consistent results, we repeated each experiment 20 times with different random initializations.
+The model was trained on the entire MNIST dataset (rather than using minibatches) for 5000 epochs using Stochastic Gradient Descent (learning rate = 0.001, loss = cross-entropy). Data normalization used $\mu=0.1307$, $\sigma=0.3081$. To ensure statistically significant results, we repeated each experiment 20 times.
 
 \subsection{Perturbation Design}
 
 The core of our experimental design centers on two distinct perturbation types: one targeting distance-based features and the other targeting intensity-based features.
 
-\subsubsection{Distance Perturbation}
+Distance-based features are expected to lie near the decision boundary. By shifting the decision boundary, we increase the distance between active features and the boundary. If these features are critical for classification, this shift should result in reduced model performance. We also seek to maintain the position of intensity features in this operation. For each node, we calculate the output range, scale by the specified percentage, and then apply the offset as a percentage of the range. The perturbation equation for a given percentage $p$ and range $r$ is: $\{\text{scale} = (1 - p) \cdot r, \text{offset} = p \cdot r \}$.
 
-The distance perturbation modifies small activation values while preserving large ones. For each node, the process involves:
-\begin{enumerate}
-    \item Calculating the natural activation range: $r = \text{max}(\text{activation}) - \text{min}(\text{activation})$,
-    \item Scaling the activation by $(1 - p)$ to maintain the maximum value,
-    \item Applying a relative shift of $p \cdot r$ (as a percentage of the range).
-\end{enumerate}
+We lack a statistical framework for intensity metrics, so we rely on heuristics to identify perturbations that might disrupt them. Two operations are tested: scaling and clipping. Scaling changes the specific value of the intensity feature, while clipping changes the value and removes the ability to distinguish between multiple intensity features.
 
-The perturbation parameters for a given percentage $p$ and range $r$ are:
-\begin{align}
-    \text{scale} &= (1 - p) \cdot r, \\
-    \text{offset} &= p \cdot r, \\
-    \text{clip} &= \infty.
-\end{align}
+Scaling simply multiplies node outputs by a scalar value. Distance-features are affected too, but the change is small since they are small. For a scaling percentage $p$, the perturbation equation is $\{\text{scale} = p\}$.
 
-Distance-based features are expected to lie near the decision boundary. By shifting the boundary, we increase the distance between active features and the boundary. If these features are critical for classification, this shift should result in reduced model performance.
-
-\subsubsection{Intensity Perturbation}
-
-We lack a statistical framework for intensity metrics, so we rely on heuristics to identify perturbations that might disrupt them. Two operations are tested: scaling and clipping.
-
-\paragraph{Scaling.} This operation multiplies node outputs by a scalar value. For a scaling percentage $p$, the perturbation parameters are:
-\begin{align}
-    \text{scale} &= p, \\
-    \text{offset} &= 0, \\
-    \text{clip} &= \infty.
-\end{align}
-
-Intensity-based features are expected to rely on the magnitude of activations to signify feature presence. By scaling the activations, we proportionally amplify or reduce their magnitude without altering the underlying decision boundary. If these features are critical for classification, this perturbation should disrupt the relative confidence levels represented by the activations, leading to a decline in model performance.
-
-Performance is expected to degrade when activations are scaled to intersect with the distance metric space, regardless of the underlying statistical representation.
-
-
-\paragraph{Clipping.} This operation caps activations at a maximum value, destroying information about relative differences among high-activation features. For a cutoff percentage $p$ and range $r$, the parameters are:
-\begin{align}
-    \text{scale} &= 1, \\
-    \text{offset} &= 0, \\
-    \text{clip} &= p \cdot r.
-\end{align}
-
-\subsubsection{Perturbation Ranges}
-
-Perturbation ranges span a broad spectrum to ensure comprehensive evaluation. The ranges overlap to facilitate direct comparison between distance and intensity metrics. All percentages are applied to individual node ranges over the input set. The ranges are as follows:
-
-\begin{table}[h]
-\centering
-\begin{tabular}{ll}
-\hline
-\textbf{Perturbation Type} & \textbf{Range} \\
-\hline
-Intensity & $[1\%, 1000\%]$ \\
-Cutoff & $[1\%, 1000\%]$ \\
-Distance & $[-200\%, 100\%]$ \\
-\hline
-\end{tabular}
-\caption{Perturbation ranges applied during experiments.}
-\end{table}
+Clipping caps activations at threshold value. This destroys information about relative differences among high-activation features. For a cutoff percentage $p$ and range $r$, the equation is $\{\text{clip} = p \cdot r\}$
 
 \subsection{Evaluation}
 
-For each perturbation configuration, we:
-\begin{enumerate}
-    \item Apply the perturbation to all nodes in the perturbation layer at multiple points in the range,
-    \item Measure the model's accuracy on the training set,
-    \item Record the new accuracy under perturbation.
-\end{enumerate}
+Perturbation ranges were selected span a broad spectrum to ensure comprehensive evaluation. The ranges overlap to facilitate direct comparison between distance and intensity metrics. All percentages are applied to individual node ranges over the input set. Intensity and cutoff range over $[1\%..1000\%]$. Offset ranges over $[-200\%..100\%]$.
 
-We evaluate on the training set to observe how perturbations affect the features learned during training. Changes in accuracy indicate reliance on the perturbed feature type, while stable accuracy suggests that the features are not critical to the model's decisions. The use of the training set ensures a comprehensive assessment with a sufficient number of data points.
+We select a percentage in the perturbation range, calculate and apply $scale$, $offset$ and $clip$ for the active test, evaluate on the entire training set, and calculate the resulting accuracy. We usethe training set, and not the test set, to observe how perturbations affect the features learned during training. Changes in accuracy indicate reliance on the perturbed feature type, while stable accuracy suggests that the features are not critical to the model's decisions. The use of the training set ensures a comprehensive assessment with a sufficient number of data points.

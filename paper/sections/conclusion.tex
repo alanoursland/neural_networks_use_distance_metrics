@@ -1,6 +1,6 @@
 \section{Conclusion}
 
-This paper provides empirical validation for the theoretical connection between neural networks and Mahalanobis distance proposed in \cite{oursland2024interpreting}. Through systematic perturbation analysis, we demonstrated that neural networks with different activation functions implement distinct forms of distance-based computation, offering new insights into their learning and decision-making processes.
+This paper provides empirical validation for the theoretical connection between neural networks and Mahalanobis distance proposed in \citep{oursland2024interpreting}. Through systematic perturbation analysis, we demonstrated that neural networks with different activation functions implement distinct forms of distance-based computation, offering new insights into their learning and decision-making processes.
 
 Our experiments show that both architectures achieve strong classification performance, with Abs networks reaching 95.29\% (±0.20) test accuracy and ReLU networks achieving 95.61\% (±0.14). Their responses to perturbations reveal fundamentally different computational approaches. The Abs network's dramatic performance degradation under small offsets (11.80\% accuracy at 0.4 offset) reveals its reliance on precise distance measurements from learned prototypes. The ReLU network's more gradual degradation (50.99\% accuracy at 0.4 offset) suggests a multi-feature distance metric approach, where performance declines as features incrementally shift relative to decision boundaries.
 
