@@ -2,7 +2,7 @@
 
 To empirically investigate whether neural networks naturally learn distance-based features, we designed systematic perturbation experiments to differentiate between distance-based and intensity-based feature learning. This experimental framework directly compares these two interpretations by examining how learned features respond to specific modifications of their activation patterns. We hypothesize that perturbing the "true representation" will result in a drop in model accuracy. 
 
-We train a basic feedforward model on the MNIST dataset to test our hypotheses. Our goal is not to optimize model accuracy but to obtain a robust model for perturbation analysis. The network processes MNIST digits through the following layers:
+We train a basic feedforward model on the MNIST dataset to test our hypotheses. Our goal is to obtain a robust model for perturbation analysis, not to optimize model accuracy. The network processes MNIST digits through the following layers:
 
 \begin{equation}
     x \rightarrow \text{Linear}(784) \rightarrow \text{Perturbation} \rightarrow \text{Activation (ReLU/Abs)} \rightarrow \text{Linear}(10) \rightarrow y
