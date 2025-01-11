@@ -72,6 +72,7 @@ def load_and_process_results(filepath):
     return stats_dict
 
 def percentage(x, pos):
+    """Format tick labels as percentages"""
     return f"{x*100:.0f}%"
 
 def setup_plotting_style():
@@ -94,9 +95,42 @@ def setup_plotting_style():
         'ps.fonttype': 42
     })
 
+def setup_icml_style():
+    """Set up plotting style to match ICML specifications exactly"""
+    SINGLE_COL_WIDTH = 3.25  # inches (calculated from textwidth/2)
+    DOUBLE_COL_WIDTH = 6.75  # inches (from textwidth in .sty)
+    
+    plt.style.use('default')
+    plt.rcParams.update({
+        # Font settings to match ICML style (Times)
+        'font.family': 'Times New Roman',
+        'font.size': 10,        # Base size to match ICML
+        'axes.labelsize': 10,   # Same as base
+        'xtick.labelsize': 8,   # Slightly smaller
+        'ytick.labelsize': 8,
+        'legend.fontsize': 8,
+        
+        # High-quality output settings
+        'figure.dpi': 300,
+        'savefig.dpi': 300,
+        'pdf.fonttype': 42,  # Ensure fonts are embedded properly
+        'ps.fonttype': 42,
+        
+        # Clean style
+        'axes.grid': True,
+        'grid.alpha': 0.3,
+        'axes.linewidth': 0.5,
+        'grid.linewidth': 0.5,
+        'lines.linewidth': 1.0,
+        
+        # Use constrained layout to handle margins
+        'figure.constrained_layout.use': True,
+    })
+    return SINGLE_COL_WIDTH, DOUBLE_COL_WIDTH
+
 def plot_intensity_results(stats_dict, output_path='results/intensity_perturbation.pdf'):
     """Create and save intensity perturbation plot"""
-    setup_plotting_style()
+    setup_icml_style()
     fig, ax = plt.subplots()
     
     ax.set_xlabel('Scale/Clip (\\% of activation range)')
@@ -144,7 +178,7 @@ def plot_intensity_results(stats_dict, output_path='results/intensity_perturbati
 
 def plot_distance_results(stats_dict, output_path='results/distance_perturbation.pdf'):
     """Create and save distance perturbation plot"""
-    setup_plotting_style()
+    setup_icml_style()
     fig, ax = plt.subplots()
     
     ax.set_xlabel('Offset (\\% of activation range)')

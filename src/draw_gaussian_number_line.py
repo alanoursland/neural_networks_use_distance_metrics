@@ -6,7 +6,7 @@ def plot_activation_demo(locations, amplitudes=None, widths=None, labels=None,
                         xlim=None, num_points=1000, title="", half_gaussians=None,
                         decision_boundary=None):
     """Create publication-ready visualization of feature distributions"""
-    setup_plotting_style()
+    setup_icml_style()
     
     # Initialize parameters
     locations = np.array(locations)
@@ -65,14 +65,12 @@ def plot_activation_demo(locations, amplitudes=None, widths=None, labels=None,
     ax.set_xlim(xlim)
     ax.set_yticks([])
     ax.spines['left'].set_visible(False)
-    ax.set_xticks([])
     
-    # # Remove x-axis ticks but keep the line
-    # ax.set_xticks([])
-    
-    # Add title with padding
-    # ax.set_title(title, pad=15)
-    
+    # Add x-axis ticks and numbers
+    # ax.set_xticks(range(int(xlim[0]), int(xlim[1]) + 1))
+    ax.spines['bottom'].set_visible(True)
+    ax.spines['bottom'].set_linewidth(1.0)
+
     plt.tight_layout()
     return fig, ax
 
@@ -86,34 +84,65 @@ def create_activation_demos():
     # Define all figure configurations
     figure_configs = [
         {
-            'name': 'relu_pre',
+            'name': 'activation_demo_relu_pre',
             'locations': base_locations,
             'amplitudes': [0.125] * 5,
             'labels': base_labels,
             'decision_boundary': 0.5,
         },
         {
-            'name': 'relu_post',
+            'name': 'activation_demo_relu_post',
             'locations': base_locations,
             'amplitudes': [0.01, 0.01, 0.01, 0.125, 0.125],
             'labels': base_labels,
             'decision_boundary': 0.5,
         },
         {
-            'name': 'abs_pre',
+            'name': 'activation_demo_abs_pre',
             'locations': base_locations,
             'amplitudes': [0.125] * 5,
             'labels': base_labels,
             'decision_boundary': 0,
         },
         {
-            'name': 'abs_post',
+            'name': 'activation_demo_abs_post',
             'locations': [0, 1, 2, 3, 4],
             'amplitudes': [0.25, 0.125, 0.125, 0.125, 0.125],
             'labels': ['c', 'b', 'd', 'a', 'e'],
             'half_gaussians': [(0, 'right')],
             'decision_boundary': 0,
         },
+
+        # Offset perturbation visualizations
+        {
+            'name': 'offset_relu_pos',
+            'locations': base_locations,
+            'amplitudes': [0.01, 0.01, 0.01, 0.125, 0.125],
+            'labels': base_labels,
+            'decision_boundary': 1.5
+        },
+        {
+            'name': 'offset_relu_neg',
+            'locations': base_locations,
+            'amplitudes': [0.01, 0.01, 0.125, 0.125, 0.125],
+            'labels': base_labels,
+            'decision_boundary': -0.5
+        },
+        {
+            'name': 'offset_abs_pos',
+            'locations': [2, 3, 4, 5],
+            'amplitudes': [0.25, 0.125, 0.125, 0.125],
+            'labels': ['c,d', 'b', 'e', 'a'],
+            'decision_boundary': 1
+        },
+        {
+            'name': 'offset_abs_neg',
+            'locations': [-1, 0, 1, 2, 4],
+            'amplitudes': [0.125, 0.125, 0.125, 0.125, 0.125],
+            'labels': ['b', 'c', 'a', 'd', 'e'],
+            'decision_boundary': -1,
+            'half_gaussians': [(-1, 'right')]
+        }
     ]
     
     # Create and save each figure
@@ -160,6 +189,29 @@ def setup_plotting_style():
         'ps.fonttype': 42
     })
 
+def setup_icml_style():
+    """Set up plotting style with fixes for identified issues"""
+    plt.style.use('default')
+    plt.rcParams.update({
+        'font.family': 'Times New Roman',
+        'font.size': 11,
+        'axes.labelsize': 12,
+        'axes.titlesize': 12,
+        'xtick.labelsize': 10,
+        'ytick.labelsize': 10,
+        'figure.dpi': 300,
+        'figure.figsize': (4.5, 2.5),
+        'savefig.dpi': 300,
+        'pdf.fonttype': 42,
+        'ps.fonttype': 42,
+        'axes.spines.top': False,
+        'axes.spines.right': False,
+        'axes.spines.left': False,
+        'axes.spines.bottom': False,
+        'figure.facecolor': 'white',
+        'axes.facecolor': 'white',
+    })
+    
 if __name__ == "__main__":
     import os
     
