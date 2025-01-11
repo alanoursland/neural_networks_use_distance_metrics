@@ -26,7 +26,7 @@ def load_and_process_results(filepath):
     """Load results and compute statistics across runs"""
     results = torch.load(filepath)
     debug_raw_data(results)
-
+    
     stats_dict = {}
     for model_name in ['PerturbationAbs', 'PerturbationReLU']:
         model_runs = results[model_name]
@@ -73,6 +73,105 @@ def load_and_process_results(filepath):
 
 def percentage(x, pos):
     return f"{x*100:.0f}%"
+
+def setup_plotting_style():
+    """Set up publication-ready plotting style"""
+    seaborn.set_theme()
+    plt.rcParams.update({
+        'font.size': 12,
+        'axes.labelsize': 14,
+        'axes.titlesize': 14,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12,
+        'legend.fontsize': 12,
+        'figure.dpi': 300,
+        'figure.figsize': (5, 4),  # Single column width
+        'axes.grid': True,
+        'grid.alpha': 0.3,
+        'lines.linewidth': 2,
+        'text.usetex': True,  # Use LaTeX for text rendering
+        'pdf.fonttype': 42,
+        'ps.fonttype': 42
+    })
+
+def plot_intensity_results(stats_dict, output_path='results/intensity_perturbation.pdf'):
+    """Create and save intensity perturbation plot"""
+    setup_plotting_style()
+    fig, ax = plt.subplots()
+    
+    ax.set_xlabel('Scale/Clip (\\% of activation range)')
+    ax.set_ylabel('Accuracy (\\%)')
+    ax.set_xlim(0, 1.2)
+    ax.set_ylim(0, 102)
+    ax.xaxis.set_major_formatter(FuncFormatter(percentage))
+
+    colors = {'PerturbationAbs': '#1f77b4', 'PerturbationReLU': '#d62728'}
+    
+    print("\tlooping over models")
+    for model_name in ['PerturbationAbs', 'PerturbationReLU']:
+        color = colors[model_name]
+        label_base = 'Abs' if 'Abs' in model_name else 'ReLU'
+        
+        # Plot scaling results
+        stats = stats_dict[model_name]['scale']
+        ax.plot(stats['x'], stats['mean'], 
+                color=color, 
+                linestyle='-',
+                label=f'{label_base} Scale')
+        ax.fill_between(stats['x'], 
+                        stats['ci'][0], 
+                        stats['ci'][1],
+                        color=color, 
+                        alpha=0.15)
+        
+        # Plot clipping results
+        stats = stats_dict[model_name]['clip']
+        ax.plot(stats['x'], stats['mean'], 
+                color=color, 
+                linestyle='--',
+                label=f'{label_base} Clip')
+        ax.fill_between(stats['x'], 
+                        stats['ci'][0], 
+                        stats['ci'][1],
+                        color=color, 
+                        alpha=0.15)
+    
+    ax.legend(loc='lower left')
+    plt.tight_layout()
+    print("\tplt.savefig")
+    plt.savefig(output_path, bbox_inches='tight', pad_inches=0.1)
+    plt.close()
+
+def plot_distance_results(stats_dict, output_path='results/distance_perturbation.pdf'):
+    """Create and save distance perturbation plot"""
+    setup_plotting_style()
+    fig, ax = plt.subplots()
+    
+    ax.set_xlabel('Offset (\\% of activation range)')
+    ax.set_ylabel('Accuracy (\\%)')
+    ax.set_ylim(0, 102)
+    ax.xaxis.set_major_formatter(FuncFormatter(percentage))
+
+    colors = {'PerturbationAbs': '#1f77b4', 'PerturbationReLU': '#d62728'}
+
+    for model_name in ['PerturbationAbs', 'PerturbationReLU']:
+        color = colors[model_name]
+        
+        stats = stats_dict[model_name]['offset']
+        ax.plot(stats['x'], stats['mean'], 
+                color=color, 
+                linestyle='-',
+                label='Abs Offset' if 'Abs' in model_name else 'ReLU Offset')
+        ax.fill_between(stats['x'], 
+                        stats['ci'][0], 
+                        stats['ci'][1],
+                        color=color, 
+                        alpha=0.15)
+    
+    ax.legend(loc='upper left')
+    plt.tight_layout()
+    plt.savefig(output_path, bbox_inches='tight', pad_inches=0.1)
+    plt.close()
 
 def plot_results(stats_dict, publication_ready=False):
     """Create plots with confidence intervals"""
@@ -222,12 +321,21 @@ def perform_ttests(filepath):
 def main():
     # Load and analyze results
     filepath = 'results/perturbation/perturbation_results.pt'
+    print("load_and_process_results")
     stats_dict = load_and_process_results(filepath)
     
-    # Create visualizations
+    # Create combined plots
+    print("plot_results")
     plot_results(stats_dict, True)
     
+    print("plot_intensity_results")
+    # Create separate plots
+    plot_intensity_results(stats_dict)
+    print("plot_distance_results")
+    plot_distance_results(stats_dict)
+
     # Perform statistical tests
+    print("perform_ttests")
     perform_ttests(filepath)
 
 if __name__ == '__main__':
