@@ -1,30 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 
 def plot_activation_demo(locations, amplitudes=None, widths=None, labels=None,
                         xlim=None, num_points=1000, title="", half_gaussians=None,
                         decision_boundary=None):
-    """
-    Create publication-ready visualization of feature distributions with decision boundaries.
-    """
-    # Set publication-style parameters
-    plt.style.use('default')
-    plt.rcParams.update({
-        'font.family': 'serif',
-        'font.size': 11,
-        'axes.labelsize': 12,
-        'axes.titlesize': 12,
-        'xtick.labelsize': 10,
-        'ytick.labelsize': 10,
-        'legend.fontsize': 10,
-        'figure.dpi': 300,
-        'figure.figsize': (6, 3),
-        'lines.linewidth': 1.5,
-        'axes.spines.top': False,
-        'axes.spines.right': False,
-        'figure.facecolor': 'white',
-        'axes.facecolor': 'white'
-    })
+    """Create publication-ready visualization of feature distributions"""
+    setup_plotting_style()
     
     # Initialize parameters
     locations = np.array(locations)
@@ -64,8 +46,8 @@ def plot_activation_demo(locations, amplitudes=None, widths=None, labels=None,
         # Plot distribution
         line, = ax.plot(x, gaussian, '-', color='#1f77b4', linewidth=1.5, alpha=0.7)
         
-        # Add feature label
-        ax.text(loc + x_offset, 0.05, label, ha='center', va='top',
+        # Add feature label using LaTeX
+        ax.text(loc + x_offset, 0.05, f'${label}$', ha='center', va='top',
                 fontsize=16, color='black')
     
     # Add decision boundary
@@ -83,6 +65,7 @@ def plot_activation_demo(locations, amplitudes=None, widths=None, labels=None,
     ax.set_xlim(xlim)
     ax.set_yticks([])
     ax.spines['left'].set_visible(False)
+    ax.set_xticks([])
     
     # # Remove x-axis ticks but keep the line
     # ax.set_xticks([])
@@ -94,105 +77,94 @@ def plot_activation_demo(locations, amplitudes=None, widths=None, labels=None,
     return fig, ax
 
 def create_activation_demos():
-    # Common parameters
+    """Create all activation demonstration figures"""
     xlim = (-4, 5)
     base_locations = [-3, -1, 0, 2, 4]
     base_labels = ['a', 'b', 'c', 'd', 'e']
+    output_dir = 'results/activation_demos'
     
-    # ReLU pre-activation
-    fig1, _ = plot_activation_demo(
-        base_locations,
-        amplitudes=[0.125] * 5,
-        labels=base_labels,
-        xlim=xlim,
-        title="(a) ReLU Pre-activation Projection",
-        decision_boundary=0.5
-    )
+    # Define all figure configurations
+    figure_configs = [
+        {
+            'name': 'relu_pre',
+            'locations': base_locations,
+            'amplitudes': [0.125] * 5,
+            'labels': base_labels,
+            'decision_boundary': 0.5,
+        },
+        {
+            'name': 'relu_post',
+            'locations': base_locations,
+            'amplitudes': [0.01, 0.01, 0.01, 0.125, 0.125],
+            'labels': base_labels,
+            'decision_boundary': 0.5,
+        },
+        {
+            'name': 'abs_pre',
+            'locations': base_locations,
+            'amplitudes': [0.125] * 5,
+            'labels': base_labels,
+            'decision_boundary': 0,
+        },
+        {
+            'name': 'abs_post',
+            'locations': [0, 1, 2, 3, 4],
+            'amplitudes': [0.25, 0.125, 0.125, 0.125, 0.125],
+            'labels': ['c', 'b', 'd', 'a', 'e'],
+            'half_gaussians': [(0, 'right')],
+            'decision_boundary': 0,
+        },
+    ]
     
-    # ReLU post-activation
-    fig2, _ = plot_activation_demo(
-        base_locations,
-        amplitudes=[0.01, 0.01, 0.01, 0.125, 0.125],
-        labels=base_labels,
-        xlim=xlim,
-        title="(b) ReLU Post-activation Response",
-        decision_boundary=0.5
-    )
-    
-    # Abs pre-activation
-    fig3, _ = plot_activation_demo(
-        base_locations,
-        amplitudes=[0.125] * 5,
-        labels=base_labels,
-        xlim=xlim,
-        title="(c) Abs Pre-activation Projection",
-        decision_boundary=0
-    )
-    
-    # Abs post-activation
-    fig4, _ = plot_activation_demo(
-        [0, 1, 2, 3, 4],
-        amplitudes=[0.25, 0.125, 0.125, 0.125, 0.125],
-        labels=['c', 'b', 'd', 'a', 'e'],
-        xlim=xlim,
-        title="(d) Abs Post-activation Response",
-        half_gaussians=[(0, 'right')],
-        decision_boundary=0
-    )
+    # Create and save each figure
+    for config in figure_configs:
+        fig, _ = plot_activation_demo(
+            locations=config['locations'],
+            amplitudes=config['amplitudes'],
+            labels=config['labels'],
+            xlim=xlim,
+            decision_boundary=config.get('decision_boundary'),
+            half_gaussians=config.get('half_gaussians', [])
+        )
+        
+        # Save as PDF with vector graphics
+        output_path = f"{output_dir}/{config['name']}.pdf"
+        plt.savefig(output_path, 
+                   bbox_inches='tight',
+                   pad_inches=0.1,
+                   format='pdf',
+                   transparent=True)
 
-    # Offset Perturbation ReLU Pos
-    fig5, _ = plot_activation_demo(
-        base_locations,
-        amplitudes=[0.01, 0.01, 0.01, 0.125, 0.125],
-        labels=base_labels,
-        xlim=xlim,
-        title="Offset ReLU Positive",
-        decision_boundary=1.5
-    )
-    
-    # Offset Perturbation ReLU Neg
-    fig6, _ = plot_activation_demo(
-        base_locations,
-        amplitudes=[0.01, 0.01, 0.125, 0.125, 0.125],
-        labels=base_labels,
-        xlim=xlim,
-        title="Offset ReLU Negative",
-        decision_boundary=-0.5
-    )
-    
-    # Abs Offset Pos
-    fig7, _ = plot_activation_demo(
-        [2, 3, 4, 5],
-        amplitudes=[0.250, 0.125, 0.125, 0.125, 0.125],
-        labels=['c,d', 'b', 'e', 'a'],
-        xlim=xlim,
-        title="Offset Abs Positive",
-        half_gaussians=[],
-        decision_boundary=1
-    )
-    
-    # Abs Offset Neg
-    fig8, _ = plot_activation_demo(
-        [-1, 0, 1, 2, 4],
-        amplitudes=[0.125, 0.125, 0.125, 0.125, 0.125],
-        labels=['b', 'c', 'a', 'd', 'e'],
-        xlim=xlim,
-        title="(d) Abs Post-activation Response",
-        half_gaussians=[(-1, 'right')],
-        decision_boundary=-1
-    )
-    return [fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8]
+        plt.close(fig)
+
+def setup_plotting_style():
+    """Set up publication-ready plotting style"""
+    plt.style.use('default')
+    plt.rcParams.update({
+        'font.family': 'serif',
+        'font.size': 11,
+        'axes.labelsize': 12,
+        'axes.titlesize': 12,
+        'xtick.labelsize': 10,
+        'ytick.labelsize': 10,
+        'legend.fontsize': 10,
+        'figure.dpi': 300,
+        'figure.figsize': (4.5, 2.5),  # Adjusted for single column
+        'lines.linewidth': 1.5,
+        'axes.spines.top': False,
+        'axes.spines.right': False,
+        'figure.facecolor': 'white',
+        'axes.facecolor': 'white',
+        'text.usetex': True,  # Use LaTeX for text rendering
+        'pdf.fonttype': 42,
+        'ps.fonttype': 42
+    })
 
 if __name__ == "__main__":
-    # Create all figures
-    figures = create_activation_demos()
+    import os
     
-    # Save each figure
-    for i, fig in enumerate(figures):
-        plt.tight_layout()
-        # fig.savefig(f'activation_demo_{i+1}.pdf', 
-        #            bbox_inches='tight',
-        #            pad_inches=0.1,
-        #            dpi=300)
-        # plt.close(fig)
-    plt.show()
+    # Create output directory if it doesn't exist
+    os.makedirs('results/activation_demos', exist_ok=True)
+    
+    # Create all figures
+    create_activation_demos()
